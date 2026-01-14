@@ -181,7 +181,7 @@ foreach ($orders as $o) {
         <div class="revenue-banner">
             <div class="revenue-stat">
                 <h3>Total Platform Commission (10%)</h3>
-                <div class="val">$
+                <div class="val">₹
                     <?php echo number_format($totalPlatformRevenue, 2); ?>
                 </div>
             </div>
@@ -215,10 +215,10 @@ foreach ($orders as $o) {
                             <td>
                                 <?php echo htmlspecialchars($o['customer_name']); ?>
                             </td>
-                            <td style="font-weight: 600;">$
+                            <td style="font-weight: 600;">₹
                                 <?php echo number_format($o['total_amount'], 2); ?>
                             </td>
-                            <td class="commission-cell">+$
+                            <td class="commission-cell">+₹
                                 <?php echo number_format($o['total_amount'] * $commissionRate, 2); ?>
                             </td>
                             <td style="color: #64748b;">

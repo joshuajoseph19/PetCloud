@@ -20,12 +20,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['confirm_booking'])) {
     $service_type = $_POST['service_type'];
     $date = $_POST['appointment_date'];
     $time = $_POST['appointment_time'];
-    $cost = 45.00; // Mock cost from image
+    $hospital_id = $_POST['hospital_id'];
+
+    // Security: Re-fetch price from DB to prevent tampering
+    $priceStmt = $pdo->prepare("SELECT price FROM hospital_services WHERE hospital_id = ? AND service_name = ?");
+    $priceStmt->execute([$hospital_id, $service_type]);
+    $priceRow = $priceStmt->fetch();
+
+    $cost = $priceRow ? $priceRow['price'] : 0;
 
     try {
-        $stmt = $pdo->prepare("INSERT INTO appointments (user_id, pet_name, breed, service_type, title, appointment_date, appointment_time, description, cost) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        // Insert with hospital_id
+        $stmt = $pdo->prepare("
+            INSERT INTO appointments 
+            (user_id, hospital_id, pet_name, breed, service_type, title, appointment_date, appointment_time, description, cost, status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed')
+        ");
+
         $title = $service_type . " for " . $pet_name;
-        if ($stmt->execute([$user_id, $pet_name, $breed, $service_type, $title, $date, $time, "Scheduled via premium booking", $cost])) {
+
+        if ($stmt->execute([$user_id, $hospital_id, $pet_name, $breed, $service_type, $title, $date, $time, "Scheduled Appointment", $cost])) {
             $success = "Booking confirmed for " . $pet_name . "! ✨";
         }
     } catch (PDOException $e) {
@@ -673,107 +687,100 @@ $allPets = $petsStmt->fetchAll();
             </div>
         </section>
 
+
         <!-- Right Column -->
         <section class="appointment-form">
             <div class="form-card">
                 <div class="form-header">
                     <h2>Schedule Appointment</h2>
-                    <div class="step-badge">
-                        <div class="step-dot"></div> Step 1 of 3
+                    <div class="step-badge" id="stepBadge">
+                        <div class="step-dot"></div> Step 1: Details
                     </div>
                 </div>
 
                 <form method="POST" id="bookingForm">
-                    <div class="section-label"><i class="fa-solid fa-paw"></i> Pet Details</div>
-                    <div class="input-row">
-                        <div class="form-group">
-                            <label>Pet Name</label>
-                            <input type="text" name="pet_name" id="petNameInput" class="form-control"
-                                placeholder="e.g. Bella" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Breed</label>
-                            <select name="breed" class="form-control" required>
-                                <option value="Dog">Dog</option>
-                                <option value="Cat">Cat</option>
-                                <option value="Bird">Bird</option>
-                                <option value="Rabbit">Rabbit</option>
-                            </select>
-                        </div>
-                    </div>
+                    <input type="hidden" name="hospital_id" id="hospitalIdInput">
+                    <input type="hidden" name="service_price" id="priceInput">
 
-                    <div class="section-label"><i class="fa-solid fa-briefcase-medical"></i> Service Type</div>
-                    <div class="service-grid">
-                        <div class="service-option active" data-service="Checkup">
-                            <i class="fa-solid fa-stethoscope"></i>
-                            <span class="service-name">Checkup</span>
-                        </div>
-                        <div class="service-option" data-service="Grooming">
-                            <i class="fa-solid fa-scissors"></i>
-                            <span class="service-name">Grooming</span>
-                        </div>
-                        <div class="service-option" data-service="Vaccine">
-                            <i class="fa-solid fa-syringe"></i>
-                            <span class="service-name">Vaccine</span>
-                        </div>
-                    </div>
-                    <input type="hidden" name="service_type" id="serviceTypeInput" value="Checkup">
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem;">
-                        <div>
-                            <div class="section-label"><i class="fa-solid fa-calendar"></i> Select Date</div>
-                            <div class="calendar-wrap">
-                                <div class="calendar-header">
-                                    <div class="calendar-title">October 2026</div>
-                                    <div class="calendar-nav">
-                                        <i class="fa-solid fa-chevron-left"></i>
-                                        <i class="fa-solid fa-chevron-right"></i>
-                                    </div>
-                                </div>
-                                <div class="calendar-days">
-                                    <span>SU</span><span>MO</span><span>TU</span><span>WE</span><span>TH</span><span>FR</span><span>SA</span>
-                                </div>
-                                <div class="calendar-grid">
-                                    <span class="day muted">27</span><span class="day muted">28</span><span
-                                        class="day muted">29</span><span class="day muted">30</span><span
-                                        class="day">1</span><span class="day">2</span><span class="day">3</span>
-                                    <span class="day">4</span><span class="day selected">5</span><span
-                                        class="day">6</span><span class="day">7</span><span class="day">8</span><span
-                                        class="day">9</span><span class="day">10</span>
-                                    <span class="day">11</span><span class="day">12</span><span
-                                        class="day">13</span><span class="day">14</span><span class="day">15</span><span
-                                        class="day">16</span><span class="day">17</span>
-                                </div>
+                    <!-- STEP 1: Pet & Service -->
+                    <div id="step1">
+                        <div class="section-label"><i class="fa-solid fa-paw"></i> Pet Details</div>
+                        <div class="input-row">
+                            <div class="form-group">
+                                <label>Pet Name</label>
+                                <input type="text" name="pet_name" id="petNameInput" class="form-control"
+                                    placeholder="e.g. Bella" required>
                             </div>
-                            <input type="hidden" name="appointment_date" id="dateInput" value="2026-10-05">
-                        </div>
-                        <div>
-                            <div class="section-label"><i class="fa-solid fa-clock"></i> Available Time</div>
-                            <div class="time-panel">
-                                <div class="time-slot" data-time="09:00:00">09:00 AM</div>
-                                <div class="time-slot active" data-time="10:30:00">10:30 AM</div>
-                                <div class="time-slot" data-time="13:00:00">01:00 PM</div>
-                                <div class="time-slot" data-time="14:30:00">02:30 PM</div>
-                                <div class="time-slot" data-time="16:00:00">04:00 PM</div>
-                                <div class="time-slot disabled">05:30 PM</div>
+                            <div class="form-group">
+                                <label>Breed</label>
+                                <select name="breed" class="form-control" required>
+                                    <option value="Dog">Dog</option>
+                                    <option value="Cat">Cat</option>
+                                    <option value="Bird">Bird</option>
+                                    <option value="Rabbit">Rabbit</option>
+                                </select>
                             </div>
-                            <input type="hidden" name="appointment_time" id="timeInput" value="10:30:00">
+                        </div>
+
+                        <div class="section-label"><i class="fa-solid fa-briefcase-medical"></i> Service Type</div>
+                        <div class="service-grid">
+                            <div class="service-option" data-service="Checkup">
+                                <i class="fa-solid fa-stethoscope"></i>
+                                <span class="service-name">Checkup</span>
+                            </div>
+                            <div class="service-option" data-service="Grooming">
+                                <i class="fa-solid fa-scissors"></i>
+                                <span class="service-name">Grooming</span>
+                            </div>
+                            <div class="service-option" data-service="Vaccine">
+                                <i class="fa-solid fa-syringe"></i>
+                                <span class="service-name">Vaccine</span>
+                            </div>
+                        </div>
+                        <input type="hidden" name="service_type" id="serviceTypeInput" required>
+                        <div id="serviceError" style="color:red; font-size:0.8rem; margin-top:0.5rem; display:none;">
+                            Please select a service.</div>
+
+                        <!-- Hospital Selection Container -->
+                        <div id="hospitalSection" style="display:none; margin-top: 2rem;">
+                            <div class="section-label"><i class="fa-solid fa-hospital"></i> Select Clinic</div>
+                            <div id="hospitalGrid" style="display:grid; grid-template-columns:1fr; gap:1rem;">
+                                <!-- Populated by JS -->
+                            </div>
                         </div>
                     </div>
 
-                    <div class="info-box">
-                        <i class="fa-solid fa-circle-info"></i>
-                        <div>The <span style="font-weight:700;">10:30 AM</span> slot is popular. Book soon to secure it
-                            for <span id="petNameLabel">Bella</span>.</div>
+                    <!-- STEP 2: Date & Time (Initially Hidden) -->
+                    <div id="step2" style="display:none; margin-top: 2rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem;">
+                            <div>
+                                <div class="section-label"><i class="fa-solid fa-calendar"></i> Select Date</div>
+                                <input type="date" name="appointment_date" id="dateInput" class="form-control"
+                                    style="font-family:inherit;" min="<?php echo date('Y-m-d'); ?>" required>
+                            </div>
+                            <div>
+                                <div class="section-label"><i class="fa-solid fa-clock"></i> Available Time</div>
+                                <div class="time-panel" id="timeSlotContainer">
+                                    <div style="grid-column: 1/-1; text-align:center; color:#94a3b8; padding:1rem;">
+                                        Select a date to view slots</div>
+                                </div>
+                                <input type="hidden" name="appointment_time" id="timeInput" required>
+                            </div>
+                        </div>
+
+                        <div class="info-box">
+                            <i class="fa-solid fa-circle-info"></i>
+                            <div>Selected Clinic: <span id="selectedClinicName" style="font-weight:700;">-</span></div>
+                        </div>
                     </div>
 
                     <div class="form-footer">
                         <div class="total-box">
                             <span>Total estimation</span>
-                            <div class="total-price">$45.00</div>
+                            <div class="total-price" id="totalPriceDisplay">₹0</div>
                         </div>
-                        <button type="submit" name="confirm_booking" class="btn-confirm">
-                            Confirm Booking <i class="fa-solid fa-arrow-right"></i>
+                        <button type="submit" name="confirm_booking" class="btn-confirm" id="btnContinue">
+                            Submit Booking <i class="fa-solid fa-check"></i>
                         </button>
                     </div>
                 </form>
@@ -788,47 +795,162 @@ $allPets = $petsStmt->fetchAll();
     </footer>
 
     <script>
-        // Service Selection
+        // DOM Elements
         const serviceOptions = document.querySelectorAll('.service-option');
         const serviceInput = document.getElementById('serviceTypeInput');
+        const hospitalSection = document.getElementById('hospitalSection');
+        const hospitalGrid = document.getElementById('hospitalGrid');
+        const step2 = document.getElementById('step2');
+        const dateInput = document.getElementById('dateInput');
+        const timeSlotContainer = document.getElementById('timeSlotContainer');
+        const timeInput = document.getElementById('timeInput');
+        const hospitalIdInput = document.getElementById('hospitalIdInput');
+        const priceInput = document.getElementById('priceInput');
+        const totalPriceDisplay = document.getElementById('totalPriceDisplay');
+        const selectedClinicName = document.getElementById('selectedClinicName');
+        const stepBadge = document.getElementById('stepBadge');
+
+        // State
+        let currentService = null;
+        let currentHospitalId = null;
+
+        // 1. Service Selection -> Fetch Hospitals
         serviceOptions.forEach(opt => {
             opt.addEventListener('click', () => {
+                // UI Toggle
                 serviceOptions.forEach(o => o.classList.remove('active'));
                 opt.classList.add('active');
-                serviceInput.value = opt.dataset.service;
+
+                // Set Value
+                currentService = opt.dataset.service;
+                serviceInput.value = currentService;
+
+                // Reset downstream
+                resetHospitalSelection();
+
+                // Fetch Hospitals
+                fetchHospitals(currentService);
             });
         });
 
-        // Time Selection
-        const timeSlots = document.querySelectorAll('.time-slot:not(.disabled)');
-        const timeInput = document.getElementById('timeInput');
-        timeSlots.forEach(slot => {
-            slot.addEventListener('click', () => {
-                timeSlots.forEach(s => s.classList.remove('active'));
-                slot.classList.add('active');
-                timeInput.value = slot.dataset.time;
-            });
-        });
+        async function fetchHospitals(service) {
+            hospitalGrid.innerHTML = '<div style="text-align:center; color:#64748b;">Loading clinics...</div>';
+            hospitalSection.style.display = 'block';
 
-        // Pet Name Sync
-        const petNameInput = document.getElementById('petNameInput');
-        const petNameLabel = document.getElementById('petNameLabel');
-        petNameInput.addEventListener('input', (e) => {
-            petNameLabel.textContent = e.target.value || 'Bella';
-        });
+            try {
+                const res = await fetch(`api_get_hospitals.php?service=${service}`);
+                const data = await res.json();
 
-        // Date selection (Simplified)
-        const days = document.querySelectorAll('.day:not(.muted)');
-        const dateInput = document.getElementById('dateInput');
-        days.forEach(day => {
-            day.addEventListener('click', () => {
-                days.forEach(d => d.classList.remove('selected'));
-                day.classList.add('selected');
-                // Mock date formatting
-                const dayVal = day.textContent.padStart(2, '0');
-                dateInput.value = `2026-10-${dayVal}`;
-            });
-        });
+                hospitalGrid.innerHTML = '';
+                if (data.length === 0) {
+                    hospitalGrid.innerHTML = '<div style="color:red;">No clinics found for this service.</div>';
+                    return;
+                }
+
+                data.forEach(h => {
+                    const card = document.createElement('div');
+                    card.className = 'service-option'; // Reusing style for simplicity
+                    card.style.display = 'flex';
+                    card.style.alignItems = 'center';
+                    card.style.gap = '1rem';
+                    card.style.marginBottom = '0.5rem';
+                    card.style.textAlign = 'left';
+
+                    card.innerHTML = `
+                        <img src="${h.image_url}" style="width:50px; height:50px; border-radius:50%; object-fit:cover;">
+                        <div style="flex:1;">
+                            <div style="font-weight:700; color:#1e293b;">${h.name}</div>
+                            <div style="font-size:0.8rem; color:#64748b;">${h.address}</div>
+                        </div>
+                        <div style="font-weight:700; color:#10b981;">₹${h.price}</div>
+                    `;
+
+                    card.addEventListener('click', () => {
+                        // Highlight logic
+                        document.querySelectorAll('#hospitalGrid > div').forEach(d => {
+                            d.style.borderColor = '#e2e8f0';
+                            d.style.background = 'white';
+                        });
+                        card.style.borderColor = '#3b82f6';
+                        card.style.background = '#eff6ff';
+
+                        selectHospital(h);
+                    });
+
+                    hospitalGrid.appendChild(card);
+                });
+
+            } catch (e) {
+                console.error(e);
+                hospitalGrid.innerHTML = 'Error loading clinics.';
+            }
+        }
+
+        function selectHospital(h) {
+            currentHospitalId = h.id;
+            hospitalIdInput.value = h.id;
+            priceInput.value = h.price;
+
+            // Update UI
+            totalPriceDisplay.textContent = '₹' + h.price;
+            selectedClinicName.textContent = h.name;
+
+            // Show next step
+            step2.style.display = 'block';
+            stepBadge.innerHTML = '<div class="step-dot"></div> Step 2: Time';
+
+            // Trigger slot fetch if date already present
+            if (dateInput.value) fetchSlots();
+        }
+
+        function resetHospitalSelection() {
+            currentHospitalId = null;
+            hospitalIdInput.value = '';
+            hospitalGrid.innerHTML = '';
+            step2.style.display = 'none';
+            totalPriceDisplay.textContent = '₹0';
+        }
+
+        // 2. Date Selection -> Fetch Slots
+        dateInput.addEventListener('change', fetchSlots);
+
+        async function fetchSlots() {
+            if (!currentHospitalId || !dateInput.value) return;
+
+            timeSlotContainer.innerHTML = 'Loading...';
+
+            try {
+                const res = await fetch(`api_get_slots.php?hospital_id=${currentHospitalId}&date=${dateInput.value}`);
+                const slots = await res.json();
+
+                timeSlotContainer.innerHTML = '';
+
+                if (slots.length === 0) {
+                    timeSlotContainer.innerHTML = 'No slots available.';
+                    return;
+                }
+
+                slots.forEach(slot => {
+                    const div = document.createElement('div');
+                    div.className = `time-slot ${slot.available ? '' : 'disabled'}`;
+                    div.textContent = slot.display;
+
+                    if (slot.available) {
+                        div.addEventListener('click', () => {
+                            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('active'));
+                            div.classList.add('active');
+                            timeInput.value = slot.time;
+                        });
+                    }
+
+                    timeSlotContainer.appendChild(div);
+                });
+
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
     </script>
 </body>
 

@@ -258,7 +258,7 @@ $s = array_merge([
                             value="<?php echo htmlspecialchars($s['commission_rate']); ?>" step="0.1">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Minimum Payout Amount ($)</label>
+                        <label class="form-label">Minimum Payout Amount (₹)</label>
                         <input type="number" name="min_payout" class="form-input"
                             value="<?php echo htmlspecialchars($s['min_payout']); ?>">
                     </div>

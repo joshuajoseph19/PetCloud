@@ -207,7 +207,7 @@ foreach ($cartItems as $item) {
                                                         class="fa-solid fa-plus"></i></button>
                                             </form>
                                         </div>
-                                        <span style="font-weight: 700; color: #10b981; font-size: 1.1rem;">$
+                                        <span style="font-weight: 700; color: #10b981; font-size: 1.1rem;">₹
                                             <?php echo number_format($item['price'] * $item['quantity'], 2); ?>
                                         </span>
                                     </div>
@@ -225,7 +225,7 @@ foreach ($cartItems as $item) {
                         <div class="summary-card">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
                                 <span style="color: #6b7280;">Subtotal</span>
-                                <span style="font-weight: 700;">$
+                                <span style="font-weight: 700;">₹
                                     <?php echo number_format($total, 2); ?>
                                 </span>
                             </div>
@@ -236,7 +236,7 @@ foreach ($cartItems as $item) {
                             <div
                                 style="display: flex; justify-content: space-between; border-top: 2px solid #e5e7eb; padding-top: 1rem; margin-top: 1rem;">
                                 <span style="font-size: 1.25rem; font-weight: 800;">Total</span>
-                                <span style="font-size: 1.25rem; font-weight: 800; color: #10b981;">$
+                                <span style="font-size: 1.25rem; font-weight: 800; color: #10b981;">₹
                                     <?php echo number_format($total, 2); ?>
                                 </span>
                             </div>

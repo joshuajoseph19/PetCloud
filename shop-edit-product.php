@@ -203,10 +203,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <select name="category" class="form-control" required>
                             <option value="Food" <?php echo $product['category'] == 'Food' ? 'selected' : ''; ?>>Food &
                                 Nutrition</option>
-                            <option value="Toys" <?php echo $product['category'] == 'Toys' ? 'selected' : ''; ?>>Toys & Play
+                            <option value="Toys" <?php echo $product['category'] == 'Toys' ? 'selected' : ''; ?>>Toys &
+                                Play
                             </option>
-                            <option value="Health" <?php echo $product['category'] == 'Health' ? 'selected' : ''; ?>
-                                >Supplements & Health</option>
+                            <option value="Health" <?php echo $product['category'] == 'Health' ? 'selected' : ''; ?>>
+                                Supplements & Health</option>
                             <option value="Accessories" <?php echo $product['category'] == 'Accessories' ? 'selected' : ''; ?>>Bedding & Accessories</option>
                         </select>
                     </div>
@@ -215,12 +216,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <select name="status" class="form-control">
                             <option value="active" <?php echo $product['status'] == 'active' ? 'selected' : ''; ?>>Active
                                 (Visible)</option>
-                            <option value="inactive" <?php echo $product['status'] == 'inactive' ? 'selected' : ''; ?>
-                                >Inactive (Hidden)</option>
+                            <option value="inactive" <?php echo $product['status'] == 'inactive' ? 'selected' : ''; ?>>
+                                Inactive (Hidden)</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Price ($)</label>
+                        <label>Price (₹)</label>
                         <input type="number" step="0.01" name="price" class="form-control" required
                             value="<?php echo $product['price']; ?>">
                     </div>

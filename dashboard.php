@@ -10,15 +10,24 @@ $user_id = $_SESSION['user_id'];
 $user_name = $_SESSION['user_name'] ?? 'Pet Lover';
 $user_pic = $_SESSION['profile_pic'] ?? 'images/default_user.png';
 
-// Handle Actions (Mark as Done / Defer)
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
-    $reminder_id = $_POST['reminder_id'];
-    if ($_POST['action'] == 'complete') {
-        $pdo->prepare("UPDATE health_reminders SET status = 'completed' WHERE id = ? AND user_id = ?")->execute([$reminder_id, $user_id]);
-    } elseif ($_POST['action'] == 'defer') {
-        $pdo->prepare("UPDATE health_reminders SET status = 'deferred', due_at = DATE_ADD(due_at, INTERVAL 1 HOUR) WHERE id = ? AND user_id = ?")->execute([$reminder_id, $user_id]);
+// Handle Actions (Mark as Done / Defer / Cancel Appointment)
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (isset($_POST['action'])) {
+        $reminder_id = $_POST['reminder_id'];
+        if ($_POST['action'] == 'complete') {
+            $pdo->prepare("UPDATE health_reminders SET status = 'completed' WHERE id = ? AND user_id = ?")->execute([$reminder_id, $user_id]);
+        } elseif ($_POST['action'] == 'defer') {
+            $pdo->prepare("UPDATE health_reminders SET status = 'deferred', due_at = DATE_ADD(due_at, INTERVAL 1 HOUR) WHERE id = ? AND user_id = ?")->execute([$reminder_id, $user_id]);
+        }
+    } elseif (isset($_POST['cancel_appointment'])) {
+        $appt_id = $_POST['appointment_id'];
+        // Cancel appointment safely
+        $pdo->prepare("UPDATE appointments SET status = 'cancelled' WHERE id = ? AND user_id = ?")->execute([$appt_id, $user_id]);
+        
+        // Refresh to reflect changes
+        header("Location: dashboard.php");
+        exit();
     }
-    // Stay on page
 }
 
 // Fetch Latest Pending Reminder (for Hero)
@@ -319,7 +328,6 @@ if (!$currentReminder) {
                             </div>
                         </div>
 
-                        <!-- Recent Orders Section -->
                         <div class="card orders-card"
                             style="background: white; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                             <div class="card-header"
@@ -356,24 +364,134 @@ if (!$currentReminder) {
                                 </div>
                             <?php else: ?>
                                 <div class="orders-list">
-                                    <?php foreach ($orders as $order): ?>
+                                    <?php foreach ($orders as $order): 
+                                        // Fetch items for this order
+                                        $itemsStmt = $pdo->prepare("
+                                            SELECT p.name 
+                                            FROM order_items oi 
+                                            JOIN products p ON oi.product_id = p.id 
+                                            WHERE oi.order_id = ? 
+                                            LIMIT 2
+                                        ");
+                                        $itemsStmt->execute([$order['id']]);
+                                        $items = $itemsStmt->fetchAll(PDO::FETCH_COLUMN);
+                                        
+                                        // Count total items to check if there are more
+                                        $countStmt = $pdo->prepare("SELECT COUNT(*) FROM order_items WHERE order_id = ?");
+                                        $countStmt->execute([$order['id']]);
+                                        $totalItems = $countStmt->fetchColumn();
+                                        
+                                        $namesString = implode(', ', $items);
+                                        if ($totalItems > 2) {
+                                            $namesString .= ' +' . ($totalItems - 2) . ' more';
+                                        }
+                                        if (empty($namesString)) {
+                                            $namesString = "Order items";
+                                        }
+                                    ?>
                                         <div class="order-summary-item"
                                             style="padding: 1rem; border: 1px solid #f3f4f6; border-radius: 0.75rem; margin-bottom: 0.75rem;">
                                             <div
-                                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                                <span style="font-weight: 700; font-size: 0.85rem;">Order
-                                                    #<?php echo str_pad($order['id'], 5, '0', STR_PAD_LEFT); ?></span>
+                                                style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                                                <div>
+                                                    <span style="font-weight: 700; font-size: 0.95rem; display:block;">Order
+                                                        #<?php echo str_pad($order['id'], 5, '0', STR_PAD_LEFT); ?></span>
+                                                    <span style="font-size: 0.85rem; color: #4b5563; display:block; margin-top:0.25rem;">
+                                                        <?php echo htmlspecialchars($namesString); ?>
+                                                    </span>
+                                                </div>
                                                 <span
                                                     style="font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 1rem; background: <?php echo $order['status'] == 'Processing' ? '#fef3c7' : '#dcfce7'; ?>; color: <?php echo $order['status'] == 'Processing' ? '#92400e' : '#166534'; ?>;">
                                                     <?php echo $order['status']; ?>
                                                 </span>
                                             </div>
                                             <div
-                                                style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #6b7280;">
+                                                style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #6b7280; margin-top:0.75rem; border-top:1px dashed #e5e7eb; padding-top:0.5rem;">
                                                 <span><?php echo date('M d, Y', strtotime($order['created_at'])); ?></span>
                                                 <span
                                                     style="font-weight: 600; color: #111827;">₹<?php echo number_format($order['total_amount'], 2); ?></span>
                                             </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Upcoming Appointments Section -->
+                         <div class="card appointments-card" 
+                            style="background: white; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-top: 2rem;">
+                            <div class="card-header"
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                <div class="icon-title" style="display: flex; align-items: center; gap: 1rem;">
+                                    <div class="icon-purple"
+                                        style="width: 40px; height: 40px; background: #f3e8ff; color: #9333ea; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fa-solid fa-stethoscope"></i>
+                                    </div>
+                                    <h4 style="font-size: 1rem;">Upcoming Visits</h4>
+                                </div>
+                                <a href="schedule.php"
+                                    style="font-size: 0.75rem; color: #3b82f6; text-decoration: none;">New Booking</a>
+                            </div>
+
+                            <?php
+                            // Fetch upcoming appointments
+                            $apptStmt = $pdo->prepare("
+                                SELECT a.*, h.name as hospital_name 
+                                FROM appointments a 
+                                LEFT JOIN hospitals h ON a.hospital_id = h.id 
+                                WHERE a.user_id = ? AND a.status != 'cancelled' 
+                                ORDER BY a.appointment_date ASC, a.appointment_time ASC 
+                                LIMIT 3
+                            ");
+                            $apptStmt->execute([$user_id]);
+                            $appointments = $apptStmt->fetchAll();
+
+                            if (empty($appointments)): ?>
+                                <div style="text-align: center; padding: 2rem 0; color: #9ca3af;">
+                                    <i class="fa-regular fa-calendar-xmark"
+                                        style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                                    <p style="font-size: 0.875rem;">No upcoming appointments</p>
+                                </div>
+                            <?php else: ?>
+                                <div class="appointments-list">
+                                    <?php foreach ($appointments as $appt): 
+                                        $apptDate = new DateTime($appt['appointment_date']);
+                                        $formattedDate = $apptDate->format('M d');
+                                        $formattedTime = date('g:i A', strtotime($appt['appointment_time']));
+                                    ?>
+                                        <div class="appt-item"
+                                            style="display:flex; align-items:center; gap:1rem; padding: 1rem; border: 1px solid #f3f4f6; border-radius: 0.75rem; margin-bottom: 0.75rem;">
+                                            <!-- Date Box -->
+                                            <div style="background:#f8fafc; padding:0.5rem 0.75rem; border-radius:0.5rem; text-align:center; min-width:60px;">
+                                                <div style="font-weight:700; color:#334155; font-size:1rem;"><?php echo $apptDate->format('d'); ?></div>
+                                                <div style="font-size:0.7rem; color:#64748b; text-transform:uppercase;"><?php echo $apptDate->format('M'); ?></div>
+                                            </div>
+                                            
+                                            <!-- Info -->
+                                            <div style="flex:1;">
+                                                <h5 style="margin:0; font-size:0.95rem; color:#1e293b;"><?php echo htmlspecialchars($appt['service_type']); ?> for <?php echo htmlspecialchars($appt['pet_name']); ?></h5>
+                                                <div style="font-size:0.8rem; color:#64748b; margin-top:0.25rem;">
+                                                    <i class="fa-solid fa-location-dot" style="color:#cbd5e1; margin-right:4px;"></i> 
+                                                    <?php echo htmlspecialchars($appt['hospital_name'] ?? 'PetCloud Partner'); ?>
+                                                </div>
+                                            </div>
+
+                                            <!-- Time -->
+                                            <div style="font-size:0.85rem; font-weight:600; color:#9333ea;">
+                                                <?php echo $formattedTime; ?>
+                                            </div>
+
+                                            <!-- Delete Action -->
+                                            <form method="POST" onsubmit="return confirm('Are you sure you want to cancel this appointment?');" style="margin-left:auto;">
+                                                <input type="hidden" name="appointment_id" value="<?php echo $appt['id']; ?>">
+                                                <input type="hidden" name="cancel_appointment" value="1">
+                                                <button type="submit" 
+                                                    style="background:white; border:1px solid #fee2e2; cursor:pointer; color:#ef4444; width:32px; height:32px; border-radius:0.5rem; display:flex; align-items:center; justify-content:center; transition:0.2s;"
+                                                    onmouseover="this.style.background='#fee2e2'"
+                                                    onmouseout="this.style.background='white'">
+                                                    <i class="fa-solid fa-trash-can" style="font-size:0.9rem;"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     <?php endforeach; ?>
                                 </div>

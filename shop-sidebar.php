@@ -48,7 +48,7 @@
         </a>
         <a href="shop-reports.php"
             class="nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'shop-reports.php' ? 'active' : ''; ?>">
-            <i class="fa-solid fa-file-invoice-dollar"></i> Reports
+            <i class="fa-solid fa-file-invoice"></i> Reports
         </a>
         <a href="shop-notifications.php"
             class="nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'shop-notifications.php' ? 'active' : ''; ?>">

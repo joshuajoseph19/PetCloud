@@ -667,15 +667,26 @@ $progress = round(($tasksCompleted / $totalTasks) * 100);
 
     <div class="container">
         <!-- Hero (Professional Design) -->
-        <section class="hero" style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1576201836106-ca1746f3364d?w=1200&q=80'); background-size: cover; background-position: center; height: 400px; display: flex; align-items: center; box-shadow: 0 20px 40px rgba(0,0,0,0.1); margin-top: 2rem; border-radius: 2rem; border: 1px solid rgba(0,0,0,0.05);">
+        <section class="hero"
+            style="background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1576201836106-ca1746f3364d?w=1200&q=80'); background-size: cover; background-position: center; height: 400px; display: flex; align-items: center; box-shadow: 0 20px 40px rgba(0,0,0,0.1); margin-top: 2rem; border-radius: 2rem; border: 1px solid rgba(0,0,0,0.05);">
             <div class="hero-content" style="width: 70%; padding-left: 4rem;">
-                <span class="hero-badge" style="background: #1e293b; color: white; padding: 0.6rem 1.25rem; border-radius: 2rem; font-weight: 800; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 12px rgba(0,0,0,0.2);">VETERINARY APPROVED</span>
-                <h1 style="font-size: 3.8rem; font-weight: 700; letter-spacing: -2px; margin-top: 1rem; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">Expert Health Guidance<br>for Every <span style="color: #3b82f6;">Paw Step</span></h1>
-                <p style="font-size: 1.25rem; max-width: 550px; margin-top: 1.5rem; opacity: 0.9;">Access comprehensive care guides, track vital health milestones, and get personalized advice for your furry companions.</p>
-                <div class="search-wrap" style="margin-top: 2.5rem; background: white; padding: 0.5rem; border-radius: 1.25rem; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
-                    <input type="text" id="mainSearch" class="search-input" style="background: transparent; padding-left: 1.5rem;"
-                        placeholder="Search symptoms, diet tips, or breeds..." onkeyup="if(event.key==='Enter') performSearch()">
-                    <button class="search-btn" onclick="performSearch()" style="padding: 1rem 2rem; border-radius: 1rem;">Search Now</button>
+                <span class="hero-badge"
+                    style="background: #1e293b; color: white; padding: 0.6rem 1.25rem; border-radius: 2rem; font-weight: 800; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 12px rgba(0,0,0,0.2);">VETERINARY
+                    APPROVED</span>
+                <h1
+                    style="font-size: 3.8rem; font-weight: 700; letter-spacing: -2px; margin-top: 1rem; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+                    Expert Health Guidance<br>for Every <span style="color: #3b82f6;">Paw Step</span></h1>
+                <p style="font-size: 1.25rem; max-width: 550px; margin-top: 1.5rem; opacity: 0.9;">Access comprehensive
+                    care guides, track vital health milestones, and get personalized advice for your furry companions.
+                </p>
+                <div class="search-wrap"
+                    style="margin-top: 2.5rem; background: white; padding: 0.5rem; border-radius: 1.25rem; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+                    <input type="text" id="mainSearch" class="search-input"
+                        style="background: transparent; padding-left: 1.5rem;"
+                        placeholder="Search symptoms, diet tips, or breeds..."
+                        onkeyup="if(event.key==='Enter') performSearch()">
+                    <button class="search-btn" onclick="performSearch()"
+                        style="padding: 1rem 2rem; border-radius: 1rem;">Search Now</button>
                 </div>
             </div>
         </section>
@@ -737,44 +748,7 @@ $progress = round(($tasksCompleted / $totalTasks) * 100);
                     </div>
                 </div>
 
-                <div style="display:flex; justify-content:space-between; margin-bottom:1.5rem; align-items:center;">
-                    <h2 style="font-family:'Outfit';">Trending Health Advice</h2>
-                    <a href="https://www.petmd.com" target="_blank"
-                        style="color:var(--primary); text-decoration:none; font-size:0.8rem; font-weight:600;">View
-                        Library <i class="fa-solid fa-arrow-right"></i></a>
-                </div>
-
-                <div class="articles-row">
-                    <div class="article-card">
-                        <img src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400" class="article-img">
-                        <div class="article-padding">
-                            <span class="pill"
-                                style="background:#eff6ff; color:#3b82f6; margin-bottom:1rem; display:inline-block;">Nutrition</span>
-                            <h4>Essential Hydration Guide for Summer Months</h4>
-                            <div class="item-meta">
-                                <span><i class="fa-regular fa-clock"></i> 5 min read</span>
-                                <span>Jun 12, 2023</span>
-                            </div>
-                            <p>Dehydration happens faster than you think. Learn the subtle signs and keep your pet cool
-                                with...</p>
-                        </div>
-                    </div>
-                    <div class="article-card">
-                        <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=400"
-                            class="article-img">
-                        <div class="article-padding">
-                            <span class="pill"
-                                style="background:#f0fdf4; color:#22c55e; margin-bottom:1rem; display:inline-block;">Behavior</span>
-                            <h4>Decoding Cat Scratches: Why They Do It</h4>
-                            <div class="item-meta">
-                                <span><i class="fa-regular fa-clock"></i> 3 min read</span>
-                                <span>Jun 10, 2023</span>
-                            </div>
-                            <p>Scratching is a natural instinct, not a sign of aggression. Discover the biological
-                                reasons and...</p>
-                        </div>
-                    </div>
-                </div>
+                <!-- Trending Advice Removed -->
             </div>
 
             <div class="sidebar-side">
@@ -792,7 +766,7 @@ $progress = round(($tasksCompleted / $totalTasks) * 100);
                             <div class="task-item" onclick="toggleTask(this, <?php echo $task['id']; ?>)">
                                 <div class="task-check <?php echo $task['is_done'] ? 'done' : ''; ?>">
                                     <?php if ($task['is_done']): ?><i class="fa-solid fa-check"
-                                             style="font-size:10px;"></i><?php endif; ?>
+                                            style="font-size:10px;"></i><?php endif; ?>
                                 </div>
                                 <div class="task-info">
                                     <h4><?php echo htmlspecialchars($task['task_name']); ?></h4>
@@ -806,35 +780,7 @@ $progress = round(($tasksCompleted / $totalTasks) * 100);
                         Add Task</button>
                 </div>
 
-                <div class="side-card breed-card" id="breedSpotlight">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                        <h4 style="font-family:'Outfit';">BREED SPOTLIGHT</h4>
-                        <i class="fa-solid fa-rotate" style="font-size:0.8rem; color:var(--gray-500); cursor:pointer;"
-                            onclick="refreshBreed()"></i>
-                    </div>
-                    <div style="position:relative; display:inline-block;">
-                        <img id="breedImg" src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=200"
-                            class="breed-avatar">
-                        <i class="fa-solid fa-circle-check"
-                            style="position:absolute; bottom:15px; right:5px; color:var(--primary); background:white; border-radius:50%;"></i>
-                    </div>
-                    <h3 id="breedName" style="margin-bottom:0.25rem; display:block;">Beagle</h3>
-                    <p id="breedGroup" style="font-size:0.75rem; color:var(--gray-500);">Hound Group • Small-Medium</p>
-                    <div class="breed-tags" id="breedTags">
-                        <span class="pill">Friendly</span>
-                        <span class="pill">High Energy</span>
-                        <span class="pill">Curious</span>
-                    </div>
-                    <p id="breedDesc"
-                        style="font-size:0.8rem; line-height:1.5; color:var(--gray-700); margin-bottom:1.5rem;">Known
-                        for
-                        their keen sense of smell and tracking instinct, the Beagle is the primary breed used as a
-                        detection dog.</p>
-                    <a href="https://www.akc.org" target="_blank" class="btn btn-primary"
-                        style="width:100%; background:var(--gray-900); text-decoration:none; display:inline-block;">View
-                        Full
-                        Profile</a>
-                </div>
+                <!-- Breed Spotlight Removed -->
             </div>
         </div>
 
@@ -943,17 +889,17 @@ $progress = round(($tasksCompleted / $totalTasks) * 100);
         async function toggleTask(el, taskId) {
             const check = el.querySelector('.task-check');
             const isDone = !check.classList.contains('done');
-            
+
             // Visual feedback
             check.classList.toggle('done');
             check.innerHTML = isDone ? '<i class="fa-solid fa-check" style="font-size:10px;"></i>' : '';
-            
+
             // DB Update
             const formData = new FormData();
             formData.append('toggle_task', '1');
             formData.append('task_id', taskId);
             formData.append('status', isDone ? '1' : '0');
-            
+
             await fetch('health-records.php', { method: 'POST', body: formData });
             updateProgress();
         }
@@ -995,7 +941,7 @@ $progress = round(($tasksCompleted / $totalTasks) * 100);
             const formData = new FormData();
             formData.append('add_new_task', '1');
             formData.append('task_name', name);
-            
+
             await fetch('health-records.php', { method: 'POST', body: formData });
             location.reload(); // Refresh to show new task with proper ID
         }
@@ -1019,6 +965,7 @@ $progress = round(($tasksCompleted / $totalTasks) * 100);
         }
     </script>
 </body>
+
 </html>
 
 </html>

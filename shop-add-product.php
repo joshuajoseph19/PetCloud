@@ -28,17 +28,45 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $discount = $_POST['discount'] ?: 0;
     $category = $_POST['category'];
     $stock = $_POST['stock'];
-    $img = $_POST['image_url'] ?: 'https://images.unsplash.com/photo-1583512676605-934c25b412f8?w=600';
     $status = $_POST['status'];
 
-    try {
-        $stmt = $pdo->prepare("INSERT INTO products (name, description, price, discount, category, image_url, stock, status, shop_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        if ($stmt->execute([$name, $desc, $price, $discount, $category, $img, $stock, $status, $shop_id])) {
-            header("Location: shop-products.php?msg=Product Added");
-            exit();
+    // Default image
+    $img = 'https://images.unsplash.com/photo-1583512676605-934c25b412f8?w=600';
+
+    // Handle File Upload
+    if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] == 0) {
+        $target_dir = "images/uploads/";
+        if (!file_exists($target_dir)) {
+            mkdir($target_dir, 0777, true);
         }
-    } catch (PDOException $e) {
-        $error = "Error: " . $e->getMessage();
+
+        $file_extension = strtolower(pathinfo($_FILES["product_image"]["name"], PATHINFO_EXTENSION));
+        $allowed_types = ['jpg', 'jpeg', 'png', 'webp'];
+
+        if (in_array($file_extension, $allowed_types)) {
+            $new_filename = uniqid('prod_') . '.' . $file_extension;
+            $target_file = $target_dir . $new_filename;
+
+            if (move_uploaded_file($_FILES["product_image"]["tmp_name"], $target_file)) {
+                $img = $target_file;
+            } else {
+                $error = "Failed to upload image.";
+            }
+        } else {
+            $error = "Invalid file type. Only JPG, PNG, and WEBP are allowed.";
+        }
+    }
+
+    if (!$error) {
+        try {
+            $stmt = $pdo->prepare("INSERT INTO products (name, description, price, discount, category, image_url, stock, status, shop_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            if ($stmt->execute([$name, $desc, $price, $discount, $category, $img, $stock, $status, $shop_id])) {
+                header("Location: shop-products.php?msg=Product Added");
+                exit();
+            }
+        } catch (PDOException $e) {
+            $error = "Error: " . $e->getMessage();
+        }
     }
 }
 ?>
@@ -155,7 +183,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
 
         <div class="form-card">
-            <form method="POST">
+            <?php if ($error): ?>
+                <div style="color: red; margin-bottom: 1rem; padding: 1rem; background: #fee2e2; border-radius: 0.5rem;">
+                    <?php echo $error; ?>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST" enctype="multipart/form-data">
                 <div class="form-group">
                     <label>Product Name</label>
                     <input type="text" name="name" class="form-control" required placeholder="High-quality kibble">
@@ -185,7 +219,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Price ($)</label>
+                        <label>Price (₹)</label>
                         <input type="number" step="0.01" name="price" class="form-control" required placeholder="29.99">
                     </div>
                     <div class="form-group">
@@ -197,8 +231,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <input type="number" name="stock" class="form-control" required value="50">
                     </div>
                     <div class="form-group">
-                        <label>Featured Image URL</label>
-                        <input type="url" name="image_url" class="form-control" placeholder="https://unsplash.com/...">
+                        <label>Product Image</label>
+                        <input type="file" name="product_image" class="form-control" accept="image/*">
+                        <small style="color: #6b7280; display: block; margin-top: 0.5rem;">Upload a high-quality image
+                            (JPG, PNG, WEBP)</small>
                     </div>
                 </div>
 

@@ -67,22 +67,34 @@ if ($count->fetchColumn() == 0) {
 }
 
 // --- Handle Add Pet Form ---
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_pet'])) {
-    $name = $_POST['pet_name'];
-    $breed = $_POST['pet_breed'];
-    $age = $_POST['pet_age'];
-    $type = $_POST['pet_type'];
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if (isset($_POST['add_pet'])) {
+        $name = $_POST['pet_name'];
+        $breed = $_POST['pet_breed'];
+        $age = $_POST['pet_age'];
+        $type = $_POST['pet_type'];
 
-    // Default image if none provided
-    $image = "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&h=600&fit=crop";
+        // Default image if none provided
+        $image = "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=600&h=600&fit=crop";
 
-    try {
-        $stmt = $pdo->prepare("INSERT INTO user_pets (user_id, pet_name, pet_breed, pet_age, pet_type, pet_image) VALUES (?, ?, ?, ?, ?, ?)");
-        if ($stmt->execute([$user_id, $name, $breed, $age, $type, $image])) {
-            $success = "New family member added! 🐾";
+        try {
+            $stmt = $pdo->prepare("INSERT INTO user_pets (user_id, pet_name, pet_breed, pet_age, pet_type, pet_image) VALUES (?, ?, ?, ?, ?, ?)");
+            if ($stmt->execute([$user_id, $name, $breed, $age, $type, $image])) {
+                $success = "New family member added! 🐾";
+            }
+        } catch (PDOException $e) {
+            $error = "Error adding pet: " . $e->getMessage();
         }
-    } catch (PDOException $e) {
-        $error = "Error adding pet: " . $e->getMessage();
+    } elseif (isset($_POST['delete_pet'])) {
+        $pet_id = $_POST['pet_id'];
+        try {
+            $stmt = $pdo->prepare("DELETE FROM user_pets WHERE id = ? AND user_id = ?");
+            if ($stmt->execute([$pet_id, $user_id])) {
+                $success = "Pet removed successfully.";
+            }
+        } catch (PDOException $e) {
+            $error = "Error removing pet: " . $e->getMessage();
+        }
     }
 }
 
@@ -294,6 +306,17 @@ $pets = $stmt->fetchAll();
                                         onclick="openDetailModal(<?php echo $pet['id']; ?>)">Profile</button>
                                     <button class="btn btn-sm btn-outline" style="padding: 0.4rem 1rem;"
                                         onclick="window.location.href='health-records.php'">Health</button>
+
+                                    <form method="POST"
+                                        onsubmit="return confirm('Are you sure you want to remove <?php echo htmlspecialchars($pet['pet_name']); ?>? This action cannot be undone.');"
+                                        style="display:inline;">
+                                        <input type="hidden" name="pet_id" value="<?php echo $pet['id']; ?>">
+                                        <button type="submit" name="delete_pet" class="btn btn-sm btn-outline"
+                                            style="padding: 0.4rem 0.8rem; color: #ef4444; border-color: #fee2e2;"
+                                            title="Remove Pet">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -355,11 +378,16 @@ $pets = $stmt->fetchAll();
                     <img id="detailPetImage" src="" style="width: 100%; height: 100%; object-fit: cover;">
                 </div>
                 <div style="flex: 1.2; padding: 2.5rem; display: flex; flex-direction: column; position: relative;">
-                    <button onclick="closeDetailModal()" style="position: absolute; right: 1.5rem; top: 1.5rem; background: #f3f4f6; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
-                    
+                    <button onclick="closeDetailModal()"
+                        style="position: absolute; right: 1.5rem; top: 1.5rem; background: #f3f4f6; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer;"><i
+                            class="fa-solid fa-xmark"></i></button>
+
                     <div style="margin-bottom: 2rem;">
-                        <span id="detailPetType" style="background: #e0f2fe; color: #0369a1; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;"></span>
-                        <h2 id="detailPetName" style="font-family: 'Outfit'; font-size: 2.5rem; margin-top: 0.5rem; margin-bottom: 0.25rem;"></h2>
+                        <span id="detailPetType"
+                            style="background: #e0f2fe; color: #0369a1; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;"></span>
+                        <h2 id="detailPetName"
+                            style="font-family: 'Outfit'; font-size: 2.5rem; margin-top: 0.5rem; margin-bottom: 0.25rem;">
+                        </h2>
                         <p id="detailPetBreed" style="color: #6b7280; font-size: 1rem;"></p>
                         <p id="detailPetAge" style="color: #9ca3af; font-size: 0.85rem;"></p>
                     </div>
@@ -370,19 +398,27 @@ $pets = $stmt->fetchAll();
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
-                        <div style="background: #f9fafb; padding: 1rem; border-radius: 1rem; text-align: center; border: 1px solid #f3f4f6;">
-                            <span style="display: block; font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem; text-transform: uppercase; font-weight: 700;">Weight</span>
-                            <span id="detailPetWeight" style="font-weight: 700; font-size: 1.1rem; color: #1f2937;"></span>
+                        <div
+                            style="background: #f9fafb; padding: 1rem; border-radius: 1rem; text-align: center; border: 1px solid #f3f4f6;">
+                            <span
+                                style="display: block; font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem; text-transform: uppercase; font-weight: 700;">Weight</span>
+                            <span id="detailPetWeight"
+                                style="font-weight: 700; font-size: 1.1rem; color: #1f2937;"></span>
                         </div>
-                        <div style="background: #f9fafb; padding: 1rem; border-radius: 1rem; text-align: center; border: 1px solid #f3f4f6;">
-                            <span style="display: block; font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem; text-transform: uppercase; font-weight: 700;">Gender</span>
-                            <span id="detailPetGender" style="font-weight: 700; font-size: 1.1rem; color: #1f2937;"></span>
+                        <div
+                            style="background: #f9fafb; padding: 1rem; border-radius: 1rem; text-align: center; border: 1px solid #f3f4f6;">
+                            <span
+                                style="display: block; font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem; text-transform: uppercase; font-weight: 700;">Gender</span>
+                            <span id="detailPetGender"
+                                style="font-weight: 700; font-size: 1.1rem; color: #1f2937;"></span>
                         </div>
                     </div>
 
                     <div style="margin-top: auto; display: flex; gap: 1rem;">
-                        <button class="btn btn-primary" style="flex: 1; padding: 1rem; border-radius: 1rem;" onclick="window.location.href='schedule.php'">Schedule Vet</button>
-                        <button class="btn btn-outline" style="flex: 1; padding: 1rem; border-radius: 1rem;" onclick="window.location.href='health-records.php'">Health Records</button>
+                        <button class="btn btn-primary" style="flex: 1; padding: 1rem; border-radius: 1rem;"
+                            onclick="window.location.href='schedule.php'">Schedule Vet</button>
+                        <button class="btn btn-outline" style="flex: 1; padding: 1rem; border-radius: 1rem;"
+                            onclick="window.location.href='health-records.php'">Health Records</button>
                     </div>
                 </div>
             </div>

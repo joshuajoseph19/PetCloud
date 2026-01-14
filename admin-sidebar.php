@@ -44,7 +44,7 @@
         </a>
         <a href="admin-platform-orders.php"
             class="nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'admin-platform-orders.php' ? 'active' : ''; ?>">
-            <i class="fa-solid fa-file-invoice-dollar"></i> Platform Revenue
+            <i class="fa-solid fa-file-invoice"></i> Platform Revenue
         </a>
         <a href="admin-notifications.php"
             class="nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'admin-notifications.php' ? 'active' : ''; ?>">

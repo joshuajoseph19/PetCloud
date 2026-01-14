@@ -152,7 +152,7 @@ $topProducts = $stmtTopP->fetchAll();
         <!-- Stats Overview -->
         <div class="stat-grid">
             <a href="shop-reports.php" class="stat-card">
-                <div class="stat-icon" style="background: #eef2ff; color: #4f46e5;"><i class="fa-solid fa-dollar-sign"></i></div>
+                <div class="stat-icon" style="background: #eef2ff; color: #4f46e5;"><i class="fa-solid fa-indian-rupee-sign"></i></div>
                 <div class="stat-value">₹<?php echo number_format($totalRevenue, 2); ?></div>
                 <div class="stat-label">Total Revenue</div>
             </a>

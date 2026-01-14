@@ -198,7 +198,7 @@ foreach ($revenueData as $r)
                                 <span class="data-label">
                                     <?php echo $rd['month']; ?>
                                 </span>
-                                <span class="data-value">$
+                                <span class="data-value">₹
                                     <?php echo number_format($rd['revenue'], 2); ?>
                                 </span>
                             </li>
@@ -219,7 +219,7 @@ foreach ($revenueData as $r)
                                     <span class="data-label">
                                         <?php echo $cd['category']; ?>
                                     </span>
-                                    <span class="data-value">$
+                                    <span class="data-value">₹
                                         <?php echo number_format($cd['total'], 2); ?>
                                     </span>
                                 </li>
@@ -230,7 +230,7 @@ foreach ($revenueData as $r)
 
                 <div class="report-card" style="background: var(--primary); color: white;">
                     <div class="card-title" style="color: white; margin-bottom: 1rem;">Quick Snapshot</div>
-                    <div style="font-size: 2.5rem; font-weight: 800; font-family: 'Outfit';">$
+                    <div style="font-size: 2.5rem; font-weight: 800; font-family: 'Outfit';">₹
                         <?php echo number_format($totalSales, 2); ?>
                     </div>
                     <p style="opacity: 0.8; font-size: 0.85rem;">Gross sales in the last 6 months</p>
