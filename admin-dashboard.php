@@ -226,7 +226,48 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
     <?php include 'admin-header.php'; ?>
 
     <main class="main-layout">
-        <h2 class="page-title">Platform Performance Overview</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2 class="page-title" style="margin-bottom: 0;">Platform Performance Overview</h2>
+
+            <!-- System Status Indicator (New) -->
+            <div style="display: flex; gap: 1rem;">
+                <?php
+                require_once 'config.php';
+
+                // 1. Database Check
+                $dbOnline = false;
+                try {
+                    $pdo->query("SELECT 1");
+                    $dbOnline = true;
+                } catch (Exception $e) {
+                }
+
+                // 2. Gateway Check
+                $gatewayLive = (defined('PAYMENT_MODE') && PAYMENT_MODE === 'live');
+                $keyConfigured = (defined('RAZORPAY_KEY_ID') && strpos(RAZORPAY_KEY_ID, 'YOUR_') === false);
+                ?>
+
+                <div
+                    style="background: white; padding: 0.5rem 1rem; border-radius: 0.75rem; border: 1px solid #e5e7eb; display: flex; align-items: center; gap: 0.6rem; font-size: 0.8rem; font-weight: 600;">
+                    <span
+                        style="height: 8px; width: 8px; border-radius: 50%; background: <?php echo $dbOnline ? '#10b981' : '#ef4444'; ?>; box-shadow: 0 0 6px <?php echo $dbOnline ? '#10b981' : '#ef4444'; ?>;"></span>
+                    <span>Database: <?php echo $dbOnline ? 'Online' : 'Offline'; ?></span>
+                </div>
+
+                <div
+                    style="background: white; padding: 0.5rem 1rem; border-radius: 0.75rem; border: 1px solid #e5e7eb; display: flex; align-items: center; gap: 0.6rem; font-size: 0.8rem; font-weight: 600;">
+                    <span
+                        style="height: 8px; width: 8px; border-radius: 50%; background: <?php echo $keyConfigured ? '#10b981' : '#f59e0b'; ?>;"></span>
+                    <span>Gateway: <?php echo $gatewayLive ? 'Live' : 'Test Mode'; ?></span>
+                </div>
+
+                <div
+                    style="background: white; padding: 0.5rem 1rem; border-radius: 0.75rem; border: 1px solid #e5e7eb; display: flex; align-items: center; gap: 0.6rem; font-size: 0.8rem; font-weight: 600;">
+                    <i class="fa-solid fa-server" style="color: #64748b;"></i>
+                    <span>Env: <?php echo $gatewayLive ? 'Production' : 'Development'; ?></span>
+                </div>
+            </div>
+        </div>
 
         <div class="stats-grid">
             <a href="admin-users.php" class="stat-link">

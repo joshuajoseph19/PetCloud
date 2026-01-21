@@ -6,6 +6,7 @@ try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS orders (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
+        payment_id VARCHAR(255),
         total_amount DECIMAL(10,2) NOT NULL,
         shipping_address TEXT,
         city VARCHAR(100),

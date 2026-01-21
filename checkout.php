@@ -1,6 +1,11 @@
 <?php
 session_start();
 require_once 'db_connect.php';
+require_once 'config.php';
+
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: index.php");
@@ -8,13 +13,22 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
+$user_name = $_SESSION['user_name'] ?? 'Pet Lover';
 $success = false;
 
 // --- AUTO-FIX: Create Tables If Missing ---
 try {
-    $pdo->query("SELECT 1 FROM orders LIMIT 1");
+    $pdo->query("SELECT payment_id FROM orders LIMIT 1");
 } catch (PDOException $e) {
-    include 'setup_orders_db.php';
+    // If table doesn't exist or column is missing
+    try {
+        $pdo->query("SELECT 1 FROM orders LIMIT 1");
+        // Table exists but column is missing
+        $pdo->exec("ALTER TABLE orders ADD COLUMN payment_id VARCHAR(255) AFTER user_id");
+    } catch (PDOException $ex) {
+        // Table doesn't exist at all
+        include 'setup_orders_db.php';
+    }
 }
 
 // --- Fetch Items for Summary ---
@@ -36,13 +50,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['place_order'])) {
     $address = $_POST['address'] ?? '';
     $city = $_POST['city'] ?? '';
     $zip = $_POST['zip_code'] ?? '';
+    $payment_id = $_POST['razorpay_payment_id'] ?? '';
 
     try {
         $pdo->beginTransaction();
 
         // 1. Insert into Orders
-        $stmtOrder = $pdo->prepare("INSERT INTO orders (user_id, total_amount, shipping_address, city, zip_code) VALUES (?, ?, ?, ?, ?)");
-        $stmtOrder->execute([$user_id, $total, $address, $city, $zip]);
+        $stmtOrder = $pdo->prepare("INSERT INTO orders (user_id, payment_id, total_amount, shipping_address, city, zip_code) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmtOrder->execute([$user_id, $payment_id, $total, $address, $city, $zip]);
         $order_id = $pdo->lastInsertId();
 
         // 2. Insert into Order Items
@@ -81,30 +96,36 @@ if (!$success && empty($cartItems)) {
     <link rel="stylesheet" href="css/styles.css">
     <style>
         .checkout-container {
-            max-width: 1100px;
-            margin: 3rem auto;
+            max-width: 1200px;
+            margin: 1rem auto 3rem;
             padding: 0 1rem;
             display: grid;
-            grid-template-columns: 1.5fr 1fr;
-            gap: 2.5rem;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 992px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+            }
         }
 
         .checkout-section {
             background: white;
-            border-radius: 1.5rem;
-            padding: 2.5rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            border-radius: 1.25rem;
+            padding: 1.75rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
         }
 
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            margin-top: 1.5rem;
+            gap: 1rem;
+            margin-top: 1rem;
         }
 
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
 
         .form-group label {
@@ -138,7 +159,7 @@ if (!$success && empty($cartItems)) {
         .place-order-btn {
             width: 100%;
             padding: 1.25rem;
-            background: #111827;
+            background: #3399cc;
             color: white;
             border: none;
             border-radius: 1rem;
@@ -146,11 +167,14 @@ if (!$success && empty($cartItems)) {
             font-size: 1.1rem;
             cursor: pointer;
             margin-top: 2rem;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(51, 153, 204, 0.3);
         }
 
         .place-order-btn:hover {
-            transform: scale(1.02);
+            background: #2b82ad;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(51, 153, 204, 0.4);
         }
 
         .success-card {
@@ -178,7 +202,7 @@ if (!$success && empty($cartItems)) {
     </style>
 </head>
 
-<body class="dashboard-page" style="background: #f9fafb;">
+<body style="background: #f9fafb; min-height: 100vh; overflow-y: auto;">
 
     <?php if ($success): ?>
         <div class="success-card">
@@ -201,8 +225,9 @@ if (!$success && empty($cartItems)) {
             </div>
         </div>
     <?php else: ?>
-        <div style="max-width: 1100px; margin: 2rem auto; padding: 0 1rem;">
-            <a href="cart.php" style="color: #6b7280; text-decoration: none;"><i class="fa-solid fa-arrow-left"></i> Return
+        <div style="max-width: 1200px; margin: 1rem auto 0.5rem; padding: 0 1rem;">
+            <a href="cart.php" style="color: #6b7280; text-decoration: none; font-size: 0.9rem;"><i
+                    class="fa-solid fa-arrow-left"></i> Return
                 to Cart</a>
         </div>
 
@@ -235,35 +260,76 @@ if (!$success && empty($cartItems)) {
                         </div>
                     </div>
 
-                    <h2 style="font-family: 'Outfit'; margin: 3rem 0 1.5rem;">Payment Method</h2>
+                    <h2 style="font-family: 'Outfit'; margin: 1.5rem 0 1rem; font-size: 1.5rem;">Payment Method</h2>
                     <div
-                        style="background: #f8fafc; padding: 1.5rem; border-radius: 1rem; border: 2.5px solid #3b82f6; display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-                        <i class="fa-solid fa-credit-card" style="font-size: 1.5rem; color: #3b82f6;"></i>
+                        style="background: #f0fdf4; padding: 1rem; border-radius: 1rem; border: 2px solid #10b981; display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                        <i class="fa-solid fa-circle-check" style="font-size: 1.5rem; color: #10b981;"></i>
                         <div style="flex-grow: 1;">
-                            <div style="font-weight: 700;">Credit / Debit Card</div>
-                            <div style="font-size: 0.85rem; color: #6b7280;">Secure SSL Payment</div>
+                            <div style="font-weight: 700; color: #064e3b;">Secure Live Checkout</div>
+                            <div style="font-size: 0.85rem; color: #065f46;">Transactions are encrypted and processed
+                                securely via Razorpay.</div>
                         </div>
-                        <i class="fa-solid fa-circle-check" style="color: #3b82f6;"></i>
                     </div>
 
-                    <div class="form-group">
-                        <label>Card Number</label>
-                        <input type="text" required placeholder="#### #### #### ####">
-                    </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Expiry Date</label>
-                            <input type="text" required placeholder="MM / YY">
+                    <div
+                        style="background: white; border: 1px solid #e5e7eb; border-radius: 1rem; padding: 1.25rem; text-align: center; margin-bottom: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                        <div style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 1rem;">
+                            <i class="fa-brands fa-cc-visa" style="font-size: 2rem; color: #1a1f71;"></i>
+                            <i class="fa-brands fa-cc-mastercard" style="font-size: 2rem; color: #eb001b;"></i>
+                            <i class="fa-solid fa-building-columns" style="font-size: 1.8rem; color: #4b5563;"></i>
+                            <i class="fa-solid fa-mobile-screen-button" style="font-size: 1.8rem; color: #3b82f6;"></i>
                         </div>
-                        <div class="form-group">
-                            <label>CVV</label>
-                            <input type="password" required placeholder="***">
-                        </div>
+                        <p style="font-size: 0.9rem; color: #6b7280; font-weight: 500;">Cards, Netbanking, UPI, and Wallets
+                        </p>
                     </div>
 
                     <input type="hidden" name="place_order" value="1">
-                    <button type="submit" class="place-order-btn">Complete Purchase -
-                        ₹<?php echo number_format($total, 2); ?></button>
+                    <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+
+                    <button type="button" id="pay-button" class="place-order-btn">
+                        Secure Checkout - ₹<?php echo number_format($total, 2); ?>
+                    </button>
+
+                    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+                    <script>
+                        var options = {
+                            "key": "<?php echo RAZORPAY_KEY_ID; ?>",
+                            "amount": "<?php echo ($total * 100); ?>",
+                            "currency": "INR",
+                            "name": "PetCloud",
+                            "description": "Premium Pet Supplies",
+                            "image": "https://img.icons8.com/deco/600/dog.png",
+                            "handler": function (response) {
+                                document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+                                document.getElementById('checkoutForm').submit();
+                            },
+                            "prefill": {
+                                "name": "<?php echo htmlspecialchars($user_name); ?>",
+                                "email": "customer@example.com",
+                                "contact": "9999999999"
+                            },
+                            "theme": {
+                                "color": "#10b981"
+                            }
+                        };
+                        var rzp1 = new Razorpay(options);
+
+                        document.getElementById('pay-button').onclick = function (e) {
+                            if (options.key.indexOf('YOUR_') !== -1) {
+                                alert('Please set your Razorpay API Key in config.php first!');
+                                e.preventDefault();
+                                return;
+                            }
+                            // Validate Form before opening Razorpay
+                            var form = document.getElementById('checkoutForm');
+                            if (form.checkValidity()) {
+                                rzp1.open();
+                            } else {
+                                form.reportValidity();
+                            }
+                            e.preventDefault();
+                        }
+                    </script>
                 </form>
             </div>
 
@@ -300,10 +366,7 @@ if (!$success && empty($cartItems)) {
                         <span style="color: #10b981;">₹<?php echo number_format($total, 2); ?></span>
                     </div>
 
-                    <button type="button" onclick="document.getElementById('checkoutForm').submit();"
-                        class="place-order-btn" style="margin-top: 2rem; background: #10b981;">
-                        Place Order Fast
-                    </button>
+
                     <p style="font-size: 0.75rem; color: #6b7280; text-align: center; margin-top: 1rem;">
                         <i class="fa-solid fa-shield-check"></i> 256-bit Secure Encryption
                     </p>

@@ -722,21 +722,20 @@ $allPets = $petsStmt->fetchAll();
                             </div>
                         </div>
 
-                        <div class="section-label"><i class="fa-solid fa-briefcase-medical"></i> Service Type</div>
-                        <div class="service-grid">
-                            <div class="service-option" data-service="Checkup">
-                                <i class="fa-solid fa-stethoscope"></i>
-                                <span class="service-name">Checkup</span>
-                            </div>
-                            <div class="service-option" data-service="Grooming">
-                                <i class="fa-solid fa-scissors"></i>
-                                <span class="service-name">Grooming</span>
-                            </div>
-                            <div class="service-option" data-service="Vaccine">
-                                <i class="fa-solid fa-syringe"></i>
-                                <span class="service-name">Vaccine</span>
+                        <div class="section-label"><i class="fa-solid fa-layer-group"></i> Select Category</div>
+                        <div id="categoryGrid" class="service-grid">
+                            <!-- Populated dynamically by JS -->
+                            <div style="grid-column:1/-1; text-align:center; color:#94a3b8;">Loading categories...</div>
+                        </div>
+
+                        <div id="serviceSelectionSection" style="display:none; margin-top: 1.5rem;">
+                            <div class="section-label"><i class="fa-solid fa-briefcase-medical"></i> Select Specific
+                                Service</div>
+                            <div id="serviceListGrid" class="service-grid" style="grid-template-columns: 1fr 1fr;">
+                                <!-- Populated dynamically by JS -->
                             </div>
                         </div>
+
                         <input type="hidden" name="service_type" id="serviceTypeInput" required>
                         <div id="serviceError" style="color:red; font-size:0.8rem; margin-top:0.5rem; display:none;">
                             Please select a service.</div>
@@ -796,8 +795,11 @@ $allPets = $petsStmt->fetchAll();
 
     <script>
         // DOM Elements
-        const serviceOptions = document.querySelectorAll('.service-option');
+        const categoryGrid = document.getElementById('categoryGrid');
+        const serviceSelectionSection = document.getElementById('serviceSelectionSection');
+        const serviceListGrid = document.getElementById('serviceListGrid');
         const serviceInput = document.getElementById('serviceTypeInput');
+
         const hospitalSection = document.getElementById('hospitalSection');
         const hospitalGrid = document.getElementById('hospitalGrid');
         const step2 = document.getElementById('step2');
@@ -811,27 +813,127 @@ $allPets = $petsStmt->fetchAll();
         const stepBadge = document.getElementById('stepBadge');
 
         // State
+        let currentCategory = null;
         let currentService = null;
         let currentHospitalId = null;
 
-        // 1. Service Selection -> Fetch Hospitals
-        serviceOptions.forEach(opt => {
-            opt.addEventListener('click', () => {
-                // UI Toggle
-                serviceOptions.forEach(o => o.classList.remove('active'));
-                opt.classList.add('active');
+        // Initialize: Fetch Categories
+        // This is a new function to fetch categories from the API
+        async function fetchCategories() {
+            try {
+                const res = await fetch('api/get_service_categories.php');
+                const result = await res.json();
 
-                // Set Value
-                currentService = opt.dataset.service;
-                serviceInput.value = currentService;
+                if (result.success) {
+                    renderCategories(result.data);
+                } else {
+                    categoryGrid.innerHTML = 'Error loading categories';
+                }
+            } catch (e) {
+                console.error(e);
+                categoryGrid.innerHTML = 'Failed to load categories';
+            }
+        }
 
-                // Reset downstream
-                resetHospitalSelection();
+        // Render Categories
+        function renderCategories(categories) {
+            categoryGrid.innerHTML = '';
+            categories.forEach(cat => {
+                const div = document.createElement('div');
+                div.className = 'service-option';
+                div.innerHTML = `
+                    <i class="fa-solid ${cat.icon || 'fa-paw'}"></i>
+                    <span class="service-name">${cat.name}</span>
+                `;
+                div.addEventListener('click', () => {
+                    // Highlight logic
+                    document.querySelectorAll('#categoryGrid .service-option').forEach(el => el.classList.remove('active'));
+                    div.classList.add('active');
 
-                // Fetch Hospitals
-                fetchHospitals(currentService);
+                    selectCategory(cat.id);
+                });
+                categoryGrid.appendChild(div);
             });
-        });
+        }
+
+        // Handle Category Selection
+        function selectCategory(categoryId) {
+            currentCategory = categoryId;
+            serviceSelectionSection.style.display = 'block';
+            serviceListGrid.innerHTML = '<div style="grid-column:1/-1; text-align:center;">Loading services...</div>';
+
+            // Reset downstream
+            resetServiceSelection();
+            resetHospitalSelection();
+
+            fetchServices(categoryId);
+        }
+
+        // Fetch Services by Category
+        async function fetchServices(categoryId) {
+            try {
+                const res = await fetch(`api/get_services.php?category_id=${categoryId}`);
+                const result = await res.json();
+
+                if (result.success) {
+                    renderServices(result.data);
+                } else {
+                    serviceListGrid.innerHTML = 'Error loading services';
+                }
+            } catch (e) {
+                console.error(e);
+                serviceListGrid.innerHTML = 'Failed to load services';
+            }
+        }
+
+        // Render Services
+        function renderServices(services) {
+            serviceListGrid.innerHTML = '';
+            if (services.length === 0) {
+                serviceListGrid.innerHTML = '<div style="grid-column:1/-1; text-align:center;">No services found for this category.</div>';
+                return;
+            }
+
+            services.forEach(srv => {
+                const div = document.createElement('div');
+                div.className = 'service-option';
+                // Smaller padding for list items
+                div.style.padding = '1rem';
+                div.style.display = 'flex';
+                div.style.alignItems = 'center';
+                div.style.gap = '0.75rem';
+
+                div.innerHTML = `
+                    <div style="font-weight:600; font-size:0.9rem;">${srv.name}</div>
+                    <div style="margin-left:auto; font-size:0.75rem; color:#64748b;">${srv.default_duration_minutes}m</div>
+                `;
+
+                div.addEventListener('click', () => {
+                    document.querySelectorAll('#serviceListGrid .service-option').forEach(el => el.classList.remove('active'));
+                    div.classList.add('active');
+
+                    selectService(srv.name);
+                });
+                serviceListGrid.appendChild(div);
+            });
+        }
+
+        function selectService(serviceName) {
+            currentService = serviceName;
+            serviceInput.value = serviceName;
+
+            resetHospitalSelection();
+            fetchHospitals(serviceName);
+        }
+
+        function resetServiceSelection() {
+            currentService = null;
+            serviceInput.value = '';
+            hospitalSection.style.display = 'none';
+        }
+
+        // Start
+        fetchCategories();
 
         async function fetchHospitals(service) {
             hospitalGrid.innerHTML = '<div style="text-align:center; color:#64748b;">Loading clinics...</div>';

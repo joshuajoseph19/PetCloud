@@ -26,7 +26,7 @@ try {
         pet_type VARCHAR(50),
         pet_image TEXT,
         pet_gender VARCHAR(20) DEFAULT 'Unknown',
-        pet_weight VARCHAR(20) DEFAULT '0 lbs',
+        pet_weight VARCHAR(20) DEFAULT '0 kg',
         pet_description TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
@@ -38,7 +38,7 @@ try {
     } catch (Exception $ex) {
     }
     try {
-        $pdo->exec("ALTER TABLE user_pets ADD COLUMN pet_weight VARCHAR(20) DEFAULT '0 lbs'");
+        $pdo->exec("ALTER TABLE user_pets ADD COLUMN pet_weight VARCHAR(20) DEFAULT '0 kg'");
     } catch (Exception $ex) {
     }
     try {
@@ -52,12 +52,12 @@ $count = $pdo->prepare("SELECT COUNT(*) FROM user_pets WHERE user_id = ?");
 $count->execute([$user_id]);
 if ($count->fetchColumn() == 0) {
     $demoPets = [
-        ['Rocky', 'Golden Retriever', '1.5 Years', 'Dog', 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600', 'Female', '12 lbs', 'Rocky is a friendly and energetic Golden Retriever who loves long walks and playing fetch.'],
-        ['Luna', 'Tabby', '8 Months', 'Cat', 'https://images.unsplash.com/photo-1495360010541-f48722b34f7d?w=600', 'Female', '6 lbs', 'Luna is a sweet and curious kitten who loves to cuddle.'],
-        ['Daisy', 'Dwarf Rabbit', '2 Years', 'Rabbit', 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=600', 'Female', '3 lbs', 'Daisy is a gentle and quiet rabbit who enjoys munching on carrots and hay.'],
-        ['Rio', 'Parrot', '1 Year', 'Bird', 'https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=600', 'Male', '1 lb', 'Rio is a very intelligent and talkative Parrot who loves to whistle.'],
-        ['Max', 'Beagle', '3 Years', 'Dog', 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=600', 'Male', '20 lbs', 'Max is a classic Beagle with an amazing sense of smell and a friendly heart.'],
-        ['Simba', 'Ginger Tabby', '2 Years', 'Cat', 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=600', 'Male', '10 lbs', 'Simba is a majestic ginger cat who thinks he is the king of the house.']
+        ['Rocky', 'Golden Retriever', '1.5 Years', 'Dog', 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=600', 'Female', '5.4 kg', 'Rocky is a friendly and energetic Golden Retriever who loves long walks and playing fetch.'],
+        ['Luna', 'Tabby', '8 Months', 'Cat', 'https://images.unsplash.com/photo-1495360010541-f48722b34f7d?w=600', 'Female', '2.7 kg', 'Luna is a sweet and curious kitten who loves to cuddle.'],
+        ['Daisy', 'Dwarf Rabbit', '2 Years', 'Rabbit', 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=600', 'Female', '1.4 kg', 'Daisy is a gentle and quiet rabbit who enjoys munching on carrots and hay.'],
+        ['Rio', 'Parrot', '1 Year', 'Bird', 'https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=600', 'Male', '0.5 kg', 'Rio is a very intelligent and talkative Parrot who loves to whistle.'],
+        ['Max', 'Beagle', '3 Years', 'Dog', 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=600', 'Male', '9.1 kg', 'Max is a classic Beagle with an amazing sense of smell and a friendly heart.'],
+        ['Simba', 'Ginger Tabby', '2 Years', 'Cat', 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=600', 'Male', '4.5 kg', 'Simba is a majestic ginger cat who thinks he is the king of the house.']
     ];
 
     $insert = $pdo->prepare("INSERT INTO user_pets (user_id, pet_name, pet_breed, pet_age, pet_type, pet_image, pet_gender, pet_weight, pet_description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -96,6 +96,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error = "Error removing pet: " . $e->getMessage();
         }
     }
+}
+
+// --- Handle Mark as Found from mypets ---
+if (isset($_POST['mark_as_found'])) {
+    $pet_id = $_POST['pet_id'];
+    $pdo->beginTransaction();
+    $pdo->prepare("UPDATE user_pets SET status = 'Active' WHERE id = ? AND user_id = ?")->execute([$pet_id, $user_id]);
+    $pdo->prepare("UPDATE lost_pet_alerts SET status = 'Resolved' WHERE pet_id = ? AND status = 'Active'")->execute([$pet_id]);
+    $pdo->commit();
+    $success = "Welcome home! Pet marked as found.";
 }
 
 // --- Fetch User Pets ---
@@ -138,6 +148,24 @@ $pets = $stmt->fetchAll();
             border-radius: 50%;
             object-fit: cover;
             border: 4px solid #f3f4f6;
+        }
+
+        .pet-card.lost {
+            border: 2px solid #ef4444;
+            background: #fffafa;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #ef4444;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            text-transform: uppercase;
         }
 
         .add-card {
@@ -289,10 +317,17 @@ $pets = $stmt->fetchAll();
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 2rem;">
 
-                    <?php foreach ($pets as $pet): ?>
+                    <?php foreach ($pets as $pet):
+                        $isLost = ($pet['status'] === 'Lost');
+                        ?>
                         <!-- Pet Card -->
-                        <div class="pet-card" data-name="<?php echo strtolower($pet['pet_name']); ?>">
-                            <img src="<?php echo htmlspecialchars($pet['pet_image']); ?>" class="pet-avatar" alt="Pet">
+                        <div class="pet-card <?php echo $isLost ? 'lost' : ''; ?>"
+                            data-name="<?php echo strtolower($pet['pet_name']); ?>" style="position: relative;">
+                            <?php if ($isLost): ?>
+                                <span class="status-badge">Lost</span>
+                            <?php endif; ?>
+                            <img src="<?php echo htmlspecialchars($pet['pet_image']); ?>" class="pet-avatar" alt="Pet"
+                                style="<?php echo $isLost ? 'filter: grayscale(0.5);' : ''; ?>">
                             <div style="flex: 1;">
                                 <h3 style="font-size: 1.5rem; font-family: 'Outfit', sans-serif;">
                                     <?php echo htmlspecialchars($pet['pet_name']); ?>
@@ -301,12 +336,25 @@ $pets = $stmt->fetchAll();
                                     <?php echo htmlspecialchars($pet['pet_breed']); ?> •
                                     <?php echo htmlspecialchars($pet['pet_age']); ?>
                                 </p>
-                                <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                                <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
                                     <button class="btn btn-sm btn-outline" style="padding: 0.4rem 1rem;"
                                         onclick="openDetailModal(<?php echo $pet['id']; ?>)">Profile</button>
+
+                                    <?php if ($isLost): ?>
+                                        <form method="POST" style="display:inline;">
+                                            <input type="hidden" name="pet_id" value="<?php echo $pet['id']; ?>">
+                                            <button type="submit" name="mark_as_found" class="btn btn-sm"
+                                                style="padding: 0.4rem 1rem; background: #10b981; color: white; border: none; font-weight: 700;">Found!</button>
+                                        </form>
+                                    <?php else: ?>
+                                        <button class="btn btn-sm btn-outline"
+                                            style="padding: 0.4rem 1rem; color: #ef4444; border-color: #fecaca;"
+                                            onclick="openLostModal(<?php echo $pet['id']; ?>, '<?php echo htmlspecialchars($pet['pet_name']); ?>')">Report
+                                            Lost</button>
+                                    <?php endif; ?>
+
                                     <button class="btn btn-sm btn-outline" style="padding: 0.4rem 1rem;"
                                         onclick="window.location.href='health-records.php'">Health</button>
-
                                     <form method="POST"
                                         onsubmit="return confirm('Are you sure you want to remove <?php echo htmlspecialchars($pet['pet_name']); ?>? This action cannot be undone.');"
                                         style="display:inline;">
@@ -452,7 +500,7 @@ $pets = $stmt->fetchAll();
             document.getElementById('detailPetType').textContent = pet.pet_type || 'Pet';
 
             // New fields from image
-            document.getElementById('detailPetWeight').textContent = pet.pet_weight || '12 lbs';
+            document.getElementById('detailPetWeight').textContent = pet.pet_weight || '5.4 kg';
             document.getElementById('detailPetGender').textContent = pet.pet_gender || 'Female';
             document.getElementById('detailPetDescription').textContent = pet.pet_description || 'No description available.';
 
@@ -477,6 +525,56 @@ $pets = $stmt->fetchAll();
                 card.style.display = name.includes(term) ? 'flex' : 'none';
             });
         });
+    </script>
+
+    <!-- Mark as Lost Modal -->
+    <div id="lostModal" class="modal">
+        <div class="modal-content">
+            <h2 style="font-family: 'Outfit'; margin-bottom: 0.5rem; color: #ef4444;">Mark <span id="lostPetName"></span> as Lost</h2>
+            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 2rem;">Help us bring them home. Nearby users will be alerted.</p>
+            <form id="lostPetForm" onsubmit="submitLostPet(event)">
+                <input type="hidden" id="lostPetId" name="pet_id">
+                <div class="form-group">
+                    <label>Last Seen Location</label>
+                    <input type="text" name="last_seen_location" required placeholder="e.g. Near Central Park">
+                </div>
+                <div class="form-group">
+                    <label>Last Seen Date</label>
+                    <input type="date" name="last_seen_date" required value="<?php echo date('Y-m-d'); ?>">
+                </div>
+                <div class="form-group">
+                    <label>Description (Features, Collar, etc.)</label>
+                    <textarea name="description" rows="3" style="width: 100%; padding: 0.75rem; border: 1.5px solid #e5e7eb; border-radius: 0.75rem;"></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button type="button" class="btn btn-outline" style="flex: 1;" onclick="closeLostModal()">Cancel</button>
+                    <button type="submit" class="btn" style="flex: 1; background: #ef4444; color: white; font-weight: 700; border: none; cursor: pointer;">Broadcast Alert</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openLostModal(id, name) {
+            document.getElementById('lostPetId').value = id;
+            document.getElementById('lostPetName').textContent = name;
+            document.getElementById('lostModal').style.display = 'block';
+        }
+        function closeLostModal() {
+            document.getElementById('lostModal').style.display = 'none';
+        }
+        async function submitLostPet(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const res = await fetch('api/mark_pet_lost.php', { method: 'POST', body: formData });
+            const data = await res.json();
+            if(data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        }
     </script>
 </body>
 

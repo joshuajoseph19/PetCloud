@@ -105,16 +105,21 @@ $user_name = $_SESSION['user_name'] ?? 'Pet Lover';
             background: #059669;
         }
 
+        .top-header {
+            justify-content: center !important;
+        }
+
         .search-container {
             background: #f9fafb;
-            padding: 0.75rem 1.25rem;
+            padding: 0.6rem 1.25rem;
             border-radius: 1rem;
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            max-width: 400px;
-            margin-bottom: 2rem;
+            width: 100%;
+            max-width: 500px;
             border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .search-container input {
@@ -277,7 +282,7 @@ $user_name = $_SESSION['user_name'] ?? 'Pet Lover';
                         <div style="background: #f9fafb; padding: 1rem; border-radius: 1rem; text-align: center;">
                             <span
                                 style="display: block; font-size: 0.75rem; color: #6b7280; margin-bottom: 0.25rem;">Weight</span>
-                            <span style="font-weight: 600;">12 lbs</span>
+                            <span style="font-weight: 600;">5.4 kg</span>
                         </div>
                         <div style="background: #f9fafb; padding: 1rem; border-radius: 1rem; text-align: center;">
                             <span
@@ -367,7 +372,7 @@ $user_name = $_SESSION['user_name'] ?? 'Pet Lover';
 
                 card.style.display = (matchesSearch && matchesCategory) ? 'flex' : 'none';
             });
-        }
+    }
     </script>
 </body>
 

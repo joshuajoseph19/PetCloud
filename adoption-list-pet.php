@@ -322,6 +322,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 2.5rem;
             margin: 0 auto 1.5rem;
         }
+
+        /* Breed Searchable Dropdown */
+        .breed-container {
+            position: relative;
+        }
+
+        .breed-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 0.75rem;
+            margin-top: 0.5rem;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .breed-group-label {
+            padding: 0.75rem 1rem 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: #f9fafb;
+        }
+
+        .breed-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9375rem;
+            color: var(--text-dark);
+        }
+
+        .breed-item:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .no-results {
+            padding: 1rem;
+            text-align: center;
+            color: var(--text-gray);
+            font-size: 0.875rem;
+        }
     </style>
 </head>
 
@@ -401,7 +452,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-step" data-step="3">
                     <div class="input-group">
                         <label>Breed (Optional)</label>
-                        <input type="text" name="breed" class="input-field" placeholder="e.g. Golden Retriever">
+                        <div class="breed-container">
+                            <input type="text" name="breed" id="breedInput" class="input-field"
+                                placeholder="e.g. Golden Retriever" autocomplete="off" oninput="filterBreeds(this.value)"
+                                onfocus="showSuggestions()">
+                            <div id="breedSuggestions" class="breed-suggestions">
+                                <!-- Suggestions will be populated by JS -->
+                            </div>
+                        </div>
                     </div>
                     <div class="input-group">
                         <label>Description</label>
@@ -451,10 +509,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             4: ["Final Touch", "A picture is worth a thousand words."]
         };
 
+        let allBreeds = []; // Store breeds for the selected pet type
+
+        async function fetchBreeds(petType) {
+            try {
+                const response = await fetch(`api/get_breeds.php?pet_type=${petType}`);
+                const result = await response.json();
+                if (result.success) {
+                    allBreeds = result.data;
+                }
+            } catch (error) {
+                console.error("Failed to fetch breeds:", error);
+            }
+        }
+
+        function filterBreeds(query) {
+            const suggestionsContainer = document.getElementById('breedSuggestions');
+            if (!query) {
+                renderSuggestions(allBreeds);
+                return;
+            }
+
+            const filteredGroups = allBreeds.map(group => {
+                return {
+                    ...group,
+                    breeds: group.breeds.filter(breed =>
+                        breed.name.toLowerCase().includes(query.toLowerCase())
+                    )
+                };
+            }).filter(group => group.breeds.length > 0);
+
+            renderSuggestions(filteredGroups);
+        }
+
+        function renderSuggestions(groups) {
+            const container = document.getElementById('breedSuggestions');
+            container.innerHTML = '';
+
+            if (groups.length === 0) {
+                container.innerHTML = '<div class="no-results">No matches found. You can keep typing to add your own.</div>';
+                container.style.display = 'block';
+                return;
+            }
+
+            groups.forEach(group => {
+                const label = document.createElement('div');
+                label.className = 'breed-group-label';
+                label.textContent = group.group_name;
+                container.appendChild(label);
+
+                group.breeds.forEach(breed => {
+                    const item = document.createElement('div');
+                    item.className = 'breed-item';
+                    item.textContent = breed.name;
+                    item.onclick = (e) => {
+                        e.stopPropagation();
+                        selectBreed(breed.name);
+                    };
+                    container.appendChild(item);
+                });
+            });
+
+            container.style.display = 'block';
+        }
+
+        function selectBreed(name) {
+            document.getElementById('breedInput').value = name;
+            document.getElementById('breedSuggestions').style.display = 'none';
+        }
+
+        function showSuggestions() {
+            if (allBreeds.length > 0) {
+                renderSuggestions(allBreeds);
+            }
+        }
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.breed-container')) {
+                document.getElementById('breedSuggestions').style.display = 'none';
+            }
+        });
+
         function selectType(el, type) {
             document.querySelectorAll('.type-option').forEach(e => e.classList.remove('selected'));
             el.classList.add('selected');
             document.getElementById('pet_type').value = type;
+
+            // Clear previous breeds and fetch new ones
+            allBreeds = [];
+            document.getElementById('breedInput').value = '';
+            fetchBreeds(type);
+
             // Auto advance for smoother UI
             setTimeout(() => changeStep(1), 300);
         }
