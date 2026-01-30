@@ -297,16 +297,21 @@ if (!$success && empty($cartItems)) {
                             "amount": "<?php echo ($total * 100); ?>",
                             "currency": "INR",
                             "name": "PetCloud",
-                            "description": "Premium Pet Supplies",
+                            "description": "Order for <?php echo count($cartItems); ?> premium pet products",
                             "image": "https://img.icons8.com/deco/600/dog.png",
                             "handler": function (response) {
                                 document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+                                // Optional: You can also capture response.razorpay_order_id if you create orders via API first
                                 document.getElementById('checkoutForm').submit();
                             },
                             "prefill": {
                                 "name": "<?php echo htmlspecialchars($user_name); ?>",
-                                "email": "customer@example.com",
-                                "contact": "9999999999"
+                                "email": "<?php echo $_SESSION['user_email'] ?? 'customer@example.com'; ?>",
+                                "contact": "<?php echo $_SESSION['user_phone'] ?? '9999999999'; ?>"
+                            },
+                            "notes": {
+                                "user_id": "<?php echo $user_id; ?>",
+                                "order_total": "<?php echo $total; ?>"
                             },
                             "theme": {
                                 "color": "#10b981"
@@ -315,11 +320,12 @@ if (!$success && empty($cartItems)) {
                         var rzp1 = new Razorpay(options);
 
                         document.getElementById('pay-button').onclick = function (e) {
-                            if (options.key.indexOf('YOUR_') !== -1) {
+                            if (options.key.indexOf('xxxx') !== -1) {
                                 alert('Please set your Razorpay API Key in config.php first!');
                                 e.preventDefault();
                                 return;
                             }
+
                             // Validate Form before opening Razorpay
                             var form = document.getElementById('checkoutForm');
                             if (form.checkValidity()) {

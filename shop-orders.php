@@ -38,7 +38,7 @@ $stmt = $pdo->prepare("SELECT o.*, u.full_name, u.email as user_email, u.phone,
                       JOIN users u ON o.user_id = u.id
                       JOIN order_items oi ON o.id = oi.order_id
                       JOIN products p ON oi.product_id = p.id
-                      WHERE p.shop_id = ?
+                      WHERE p.shop_id = ? AND o.status != 'Cancelled'
                       GROUP BY o.id
                       ORDER BY o.created_at DESC");
 $stmt->execute([$shop_id]);
@@ -215,8 +215,11 @@ $orders = $stmt->fetchAll();
                 <div class="order-card">
                     <div class="order-header">
                         <div>
-                            <div class="order-id">Order #
-                                <?php echo $order['id']; ?>
+                            <div class="order-id">Order #<?php echo $order['id']; ?>
+                                <?php if ($order['payment_id']): ?>
+                                    <span style="font-size: 0.75rem; color: #64748b; font-weight: 400; margin-left: 0.5rem;">(Txn:
+                                        <?php echo $order['payment_id']; ?>)</span>
+                                <?php endif; ?>
                             </div>
                             <div class="order-date">Placed on
                                 <?php echo date('M d, Y • h:i A', strtotime($order['created_at'])); ?>

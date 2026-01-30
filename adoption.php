@@ -156,6 +156,9 @@ $user_name = $_SESSION['user_name'] ?? 'Pet Lover';
                 <a href="mypets.php" class="nav-item">
                     <i class="fa-solid fa-paw"></i> My Pets
                 </a>
+                <a href="my-orders.php" class="nav-item">
+                    <i class="fa-solid fa-bag-shopping"></i> My Orders
+                </a>
                 <a href="schedule.php" class="nav-item">
                     <i class="fa-regular fa-calendar"></i> Schedule
                     <span class="nav-badge">2</span>
@@ -372,7 +375,7 @@ $user_name = $_SESSION['user_name'] ?? 'Pet Lover';
 
                 card.style.display = (matchesSearch && matchesCategory) ? 'flex' : 'none';
             });
-    }
+        }
     </script>
 </body>
 

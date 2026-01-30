@@ -164,6 +164,9 @@ if (!$currentReminder) {
                 <a href="mypets.php" class="nav-item">
                     <i class="fa-solid fa-paw"></i> My Pets
                 </a>
+                <a href="my-orders.php" class="nav-item">
+                    <i class="fa-solid fa-bag-shopping"></i> My Orders
+                </a>
                 <a href="schedule.php" class="nav-item">
                     <i class="fa-regular fa-calendar"></i> Schedule
                     <span class="nav-badge">2</span>
@@ -448,8 +451,8 @@ if (!$currentReminder) {
                                     </div>
                                     <h4 style="font-size: 1rem;">Recent Orders</h4>
                                 </div>
-                                <a href="marketplace.php"
-                                    style="font-size: 0.75rem; color: #3b82f6; text-decoration: none;">Shop More</a>
+                                <a href="my-orders.php"
+                                    style="font-size: 0.75rem; color: #3b82f6; text-decoration: none;">View All History</a>
                             </div>
 
                             <?php
@@ -461,7 +464,7 @@ if (!$currentReminder) {
                             }
 
                             // Fetch recent orders
-                            $orderStmt = $pdo->prepare("SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC LIMIT 3");
+                            $orderStmt = $pdo->prepare("SELECT * FROM orders WHERE user_id = ? AND status != 'Cancelled' ORDER BY created_at DESC LIMIT 3");
                             $orderStmt->execute([$user_id]);
                             $orders = $orderStmt->fetchAll();
 

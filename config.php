@@ -8,13 +8,13 @@
 define('PAYMENT_MODE', 'test');
 
 // Razorpay Credentials
-// Replace these with your actual keys from https://dashboard.razorpay.com/app/keys
+// Get these from: https://dashboard.razorpay.com/app/keys
 if (PAYMENT_MODE === 'live') {
-    define('RAZORPAY_KEY_ID', 'rzp_live_YOUR_LIVE_KEY_HERE');
-    define('RAZORPAY_KEY_SECRET', 'YOUR_LIVE_KEY_SECRET_HERE');
+    define('RAZORPAY_KEY_ID', 'rzp_live_xxxxxxxxxxxxxx');
+    define('RAZORPAY_KEY_SECRET', 'xxxxxxxxxxxxxxxxxxxxxxxx');
 } else {
-    define('RAZORPAY_KEY_ID', 'rzp_test_YOUR_TEST_KEY_HERE');
-    define('RAZORPAY_KEY_SECRET', 'YOUR_TEST_KEY_SECRET_HERE');
+    define('RAZORPAY_KEY_ID', 'rzp_test_SA0zw7u9R4lnqU');
+    define('RAZORPAY_KEY_SECRET', 'ZjyBszweN22q5Ecn5KelN2qo');
 }
 
 // Database Configuration (already handled in db_connect.php, but good for reference)

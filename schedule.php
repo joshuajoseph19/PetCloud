@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'db_connect.php';
+require_once 'config.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: index.php");
@@ -13,37 +14,54 @@ $user_name = $_SESSION['user_name'] ?? 'Pet Lover';
 $success = "";
 $error = "";
 
+// --- AUTO-FIX: Create Tables/Columns If Missing ---
+try {
+    $pdo->query("SELECT payment_id FROM appointments LIMIT 1");
+} catch (PDOException $e) {
+    try {
+        $pdo->query("SELECT 1 FROM appointments LIMIT 1");
+        $pdo->exec("ALTER TABLE appointments ADD COLUMN payment_id VARCHAR(255) AFTER user_id");
+    } catch (PDOException $ex) {
+        // Table might not exist, but let booking logic handle it or run setup_appointment_system.php
+    }
+}
+
 // Handle Booking
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['confirm_booking'])) {
-    $pet_name = $_POST['pet_name'];
-    $breed = $_POST['breed'];
-    $service_type = $_POST['service_type'];
+    $pet_name = $_POST['pet_name'] ?? 'Pet';
+    $breed = $_POST['breed'] ?? 'Unknown';
+    $service_type = $_POST['service_type'] ?? 'General';
     $date = $_POST['appointment_date'];
     $time = $_POST['appointment_time'];
     $hospital_id = $_POST['hospital_id'];
+    $payment_id = $_POST['razorpay_payment_id'] ?? '';
 
-    // Security: Re-fetch price from DB to prevent tampering
-    $priceStmt = $pdo->prepare("SELECT price FROM hospital_services WHERE hospital_id = ? AND service_name = ?");
-    $priceStmt->execute([$hospital_id, $service_type]);
-    $priceRow = $priceStmt->fetch();
+    if (empty($payment_id)) {
+        $error = "Payment configuration error or session timeout.";
+    } else {
+        // Security: Re-fetch price from DB to prevent tampering
+        $priceStmt = $pdo->prepare("SELECT price FROM hospital_services WHERE hospital_id = ? AND service_name = ?");
+        $priceStmt->execute([$hospital_id, $service_type]);
+        $priceRow = $priceStmt->fetch();
 
-    $cost = $priceRow ? $priceRow['price'] : 0;
+        $cost = $priceRow ? $priceRow['price'] : 0;
 
-    try {
-        // Insert with hospital_id
-        $stmt = $pdo->prepare("
-            INSERT INTO appointments 
-            (user_id, hospital_id, pet_name, breed, service_type, title, appointment_date, appointment_time, description, cost, status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed')
-        ");
+        try {
+            // Insert with hospital_id
+            $stmt = $pdo->prepare("
+                INSERT INTO appointments 
+                (user_id, payment_id, hospital_id, pet_name, breed, service_type, title, appointment_date, appointment_time, description, cost, status) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed')
+            ");
 
-        $title = $service_type . " for " . $pet_name;
+            $title = $service_type . " for " . $pet_name;
 
-        if ($stmt->execute([$user_id, $hospital_id, $pet_name, $breed, $service_type, $title, $date, $time, "Scheduled Appointment", $cost])) {
-            $success = "Booking confirmed for " . $pet_name . "! ✨";
+            if ($stmt->execute([$user_id, $payment_id, $hospital_id, $pet_name, $breed, $service_type, $title, $date, $time, "Scheduled Appointment", $cost])) {
+                $success = "Booking confirmed for " . $pet_name . "! ✨";
+            }
+        } catch (PDOException $e) {
+            $error = "Booking failed: " . $e->getMessage();
         }
-    } catch (PDOException $e) {
-        $error = "Booking failed: " . $e->getMessage();
     }
 }
 
@@ -211,61 +229,7 @@ $allPets = $petsStmt->fetchAll();
             display: block;
         }
 
-        .social-proof {
-            position: absolute;
-            bottom: 2rem;
-            left: 2rem;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            padding: 1rem 1.5rem;
-            border-radius: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
 
-        .avatars {
-            display: flex;
-            margin-right: 0.5rem;
-        }
-
-        .avatars img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 2px solid white;
-            margin-left: -10px;
-        }
-
-        .avatars img:first-child {
-            margin-left: 0;
-        }
-
-        .avatars-plus {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #f1f5f9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: #64748b;
-            border: 2px solid white;
-            margin-left: -10px;
-        }
-
-        .stars {
-            color: #fbbf24;
-            font-size: 0.9rem;
-        }
-
-        .proof-text {
-            font-size: 0.8rem;
-            color: #64748b;
-            font-weight: 500;
-        }
 
         .trust-badges {
             display: flex;
@@ -661,24 +625,7 @@ $allPets = $petsStmt->fetchAll();
             <div class="hero-img-card">
                 <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?w=1200" class="hero-img"
                     alt="Dogs running">
-                <div class="social-proof">
-                    <div class="avatars">
-                        <img src="https://i.pravatar.cc/100?u=1" alt="user">
-                        <img src="https://i.pravatar.cc/100?u=2" alt="user">
-                        <img src="https://i.pravatar.cc/100?u=3" alt="user">
-                        <div class="avatars-plus">+2k</div>
-                    </div>
-                    <div style="display:flex; flex-direction:column;">
-                        <div class="stars">
-                            <i class="fa-solid fa-star"></i>
-                            <i class="fa-solid fa-star"></i>
-                            <i class="fa-solid fa-star"></i>
-                            <i class="fa-solid fa-star"></i>
-                            <i class="fa-solid fa-star"></i>
-                        </div>
-                        <span class="proof-text">Trusted by pet parents worldwide</span>
-                    </div>
-                </div>
+
             </div>
 
             <div class="trust-badges">
@@ -778,8 +725,10 @@ $allPets = $petsStmt->fetchAll();
                             <span>Total estimation</span>
                             <div class="total-price" id="totalPriceDisplay">₹0</div>
                         </div>
-                        <button type="submit" name="confirm_booking" class="btn-confirm" id="btnContinue">
-                            Submit Booking <i class="fa-solid fa-check"></i>
+                        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+                        <input type="hidden" name="confirm_booking" value="1">
+                        <button type="button" class="btn-confirm" id="btnContinue">
+                            Secure Payment & Book <i class="fa-solid fa-lock" style="font-size: 0.8rem;"></i>
                         </button>
                     </div>
                 </form>
@@ -1053,6 +1002,49 @@ $allPets = $petsStmt->fetchAll();
             }
         }
 
+    </script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        document.getElementById('btnContinue').onclick = function (e) {
+            const form = document.getElementById('bookingForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const amount = parseInt(priceInput.value) * 100;
+            if (isNaN(amount) || amount <= 0) {
+                alert('Please select a service and clinic first.');
+                return;
+            }
+
+            if ("<?php echo RAZORPAY_KEY_ID; ?>".indexOf('xxxx') !== -1) {
+                alert('Razorpay API Key not configured in config.php');
+                return;
+            }
+
+            var options = {
+                "key": "<?php echo RAZORPAY_KEY_ID; ?>",
+                "amount": amount,
+                "currency": "INR",
+                "name": "PetCloud",
+                "description": "Appointment for " + (document.getElementById('petNameInput').value || 'Pet'),
+                "image": "https://img.icons8.com/deco/600/dog.png",
+                "handler": function (response) {
+                    document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+                    form.submit();
+                },
+                "prefill": {
+                    "name": "<?php echo htmlspecialchars($user_name); ?>",
+                    "email": "<?php echo $_SESSION['user_email'] ?? ''; ?>",
+                    "contact": ""
+                },
+                "theme": { "color": "#3b82f6" }
+            };
+            var rzp1 = new Razorpay(options);
+            rzp1.open();
+            e.preventDefault();
+        }
     </script>
 </body>
 

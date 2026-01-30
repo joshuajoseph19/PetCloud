@@ -160,8 +160,9 @@ $products = $stmt->fetchAll();
                 <a href="dashboard.php" class="nav-item"><i class="fa-solid fa-table-cells-large"></i> Overview</a>
                 <a href="adoption.php" class="nav-item"><i class="fa-solid fa-heart"></i> Adoption</a>
                 <a href="mypets.php" class="nav-item"><i class="fa-solid fa-paw"></i> My Pets</a>
+                <a href="my-orders.php" class="nav-item"><i class="fa-solid fa-bag-shopping"></i> My Orders</a>
                 <a href="schedule.php" class="nav-item"><i class="fa-regular fa-calendar"></i> Schedule</a>
-                <a href="marketplace.php" class="nav-item active"><i class="fa-solid fa-bag-shopping"></i>
+                <a href="marketplace.php" class="nav-item active"><i class="fa-solid fa-store"></i>
                     Marketplace</a>
                 <a href="health-records.php" class="nav-item"><i class="fa-solid fa-notes-medical"></i> Health
                     Records</a>
