@@ -12,9 +12,9 @@
     z-index: 1000;
 ">
     <div class="sidebar-brand"
-        style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 3rem; padding: 0 1rem;">
-        <i class="fa-solid fa-shield-halved" style="font-size: 1.5rem; color: #10b981;"></i>
-        <span style="font-weight: 800; font-size: 1.25rem; letter-spacing: -0.5px;">Admin Control</span>
+        style="display: flex; align-items: flex-start; margin-bottom: 0.5rem; padding: 0.5rem 1.5rem 0;">
+        <img src="images/logo.png" alt="PetCloud Logo"
+            style="width: 160px; height: auto; filter: brightness(0) invert(1); object-fit: contain;">
     </div>
 
     <nav class="sidebar-nav" style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">

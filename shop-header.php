@@ -3,11 +3,9 @@
 ?>
 <header class="top-header"
     style="height: 70px; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; position: sticky; top: 0; z-index: 999; margin-left: 280px;">
-    <div class="search-bar" style="position: relative; width: 400px;">
-        <i class="fa-solid fa-magnifying-glass"
-            style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
-        <input type="text" placeholder="Search orders, products or customers..."
-            style="width: 100%; padding: 0.65rem 1rem 0.65rem 2.75rem; border: 1px solid #e5e7eb; border-radius: 0.75rem; outline: none; background: #f9fafb;">
+    <div class="search-bar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="shop-search" placeholder="Search orders, products or customers...">
     </div>
 
     <div class="header-actions" style="display: flex; align-items: center; gap: 1.5rem;">

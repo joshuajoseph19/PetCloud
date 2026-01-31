@@ -12,6 +12,19 @@ $user_id = $_SESSION['user_id'];
 $user_email = $_SESSION['user_email'];
 $user_name = $_SESSION['user_name'];
 
+// --- Time-based Greeting Logic (IST) ---
+date_default_timezone_set('Asia/Kolkata');
+$hour = date('H');
+if ($hour >= 5 && $hour < 12) {
+    $greeting = "Good Morning";
+} elseif ($hour >= 12 && $hour < 17) {
+    $greeting = "Good Afternoon";
+} elseif ($hour >= 17 && $hour < 21) {
+    $greeting = "Good Evening";
+} else {
+    $greeting = "Good Night";
+}
+
 // Fetch Shop Details
 $stmt = $pdo->prepare("SELECT * FROM shop_applications WHERE email = ? AND status = 'approved' LIMIT 1");
 $stmt->execute([$user_email]);
@@ -145,7 +158,7 @@ $topProducts = $stmtTopP->fetchAll();
 
     <main class="main-wrapper">
         <section class="welcome-section">
-            <h2>Hello, <?php echo htmlspecialchars(explode(' ', $user_name)[0]); ?>! 👋</h2>
+            <h2><?php echo $greeting; ?>, <?php echo htmlspecialchars(explode(' ', $user_name)[0]); ?>! 👋</h2>
             <p>Welcome back to your shop control center. Here's what's happening today.</p>
         </section>
 
@@ -244,5 +257,36 @@ $topProducts = $stmtTopP->fetchAll();
         </div>
     </main>
 
+    <script>
+        const shopSearch = document.getElementById('shop-search');
+        if (shopSearch) {
+            shopSearch.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    const query = this.value.toLowerCase().trim();
+                    if (!query) return;
+                    
+                    if (query.includes('order')) {
+                        window.location.href = 'shop-orders.php';
+                    } else if (query.includes('product') || query.includes('item')) {
+                        window.location.href = 'shop-products.php';
+                    } else {
+                        window.location.href = 'shop-orders.php?search=' + encodeURIComponent(query);
+                    }
+                }
+            });
+
+            // Live filtering for the recent orders table
+            shopSearch.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                const rows = document.querySelectorAll('.custom-table tbody tr');
+                
+                rows.forEach(row => {
+                    if (row.cells.length < 2) return; // Skip "No orders yet" message
+                    const text = row.innerText.toLowerCase();
+                    row.style.display = text.includes(query) ? '' : 'none';
+                });
+            });
+        }
+    </script>
 </body>
 </html>

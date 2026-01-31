@@ -10,6 +10,19 @@ $user_id = $_SESSION['user_id'];
 $user_name = $_SESSION['user_name'] ?? 'Pet Lover';
 $user_pic = $_SESSION['profile_pic'] ?? 'images/default_user.png';
 
+// --- Time-based Greeting Logic (IST) ---
+date_default_timezone_set('Asia/Kolkata');
+$hour = date('H');
+if ($hour >= 5 && $hour < 12) {
+    $greeting = "Good Morning";
+} elseif ($hour >= 12 && $hour < 17) {
+    $greeting = "Good Afternoon";
+} elseif ($hour >= 17 && $hour < 21) {
+    $greeting = "Good Evening";
+} else {
+    $greeting = "Good Night";
+}
+
 // Handle Actions (Mark as Done / Defer / Cancel Appointment)
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['action'])) {
@@ -27,6 +40,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Refresh to reflect changes
         header("Location: dashboard.php");
         exit();
+    } elseif (isset($_POST['listing_action'])) {
+        $lid = $_POST['listing_id'];
+        $action = $_POST['listing_action'];
+        
+        // Verify ownership
+        $check = $pdo->prepare("SELECT id FROM adoption_listings WHERE id = ? AND user_id = ?");
+        $check->execute([$lid, $user_id]);
+        if ($check->fetch()) {
+            if ($action == 'delete') {
+                $pdo->prepare("DELETE FROM adoption_listings WHERE id = ?")->execute([$lid]);
+            } elseif ($action == 'mark_adopted') {
+                $pdo->prepare("UPDATE adoption_listings SET status = 'adopted' WHERE id = ?")->execute([$lid]);
+            }
+            header("Location: dashboard.php?msg=success");
+            exit();
+        }
     }
 }
 
@@ -106,6 +135,11 @@ $reportsCountStmt = $pdo->prepare("
 $reportsCountStmt->execute([$user_id]);
 $foundReportsCount = $reportsCountStmt->fetchColumn();
 
+// Fetch User's Adoption Listings
+$adoptionStmt = $pdo->prepare("SELECT * FROM adoption_listings WHERE user_id = ? AND status = 'active' ORDER BY created_at DESC");
+$adoptionStmt->execute([$user_id]);
+$myAdoptions = $adoptionStmt->fetchAll();
+
 // Default if no reminder
 if (!$currentReminder) {
     $currentReminder = [
@@ -143,17 +177,13 @@ if (!$currentReminder) {
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="sidebar-brand">
-                <i class="fa-solid fa-paw sidebar-logo-icon"></i>
-                <div class="brand-text">
-                    <span class="brand-name">PetCloud</span>
-                    <span class="brand-sub">DASHBOARD</span>
-                </div>
+            <div class="sidebar-brand" style="padding: 0.5rem 1.5rem 0; display: flex; align-items: flex-start; margin-bottom: 0;">
+                <img src="images/logo.png" alt="PetCloud Logo" style="width: 180px; height: auto; object-fit: contain;">
             </div>
 
             <nav class="sidebar-nav">
                 <a href="dashboard.php" class="nav-item active">
-                    <i class="fa-solid fa-table-cells-large"></i> Overview
+                    <i class="fa-solid fa-house"></i> Overview
                 </a>
                 <a href="adoption.php" class="nav-item">
                     <i class="fa-solid fa-heart"></i> Adoption
@@ -163,6 +193,9 @@ if (!$currentReminder) {
                 </a>
                 <a href="mypets.php" class="nav-item">
                     <i class="fa-solid fa-paw"></i> My Pets
+                </a>
+                <a href="smart-feeder.php" class="nav-item">
+                    <i class="fa-solid fa-microchip"></i> Smart Feeder
                 </a>
                 <a href="my-orders.php" class="nav-item">
                     <i class="fa-solid fa-bag-shopping"></i> My Orders
@@ -208,15 +241,52 @@ if (!$currentReminder) {
             <header class="top-header">
                 <div class="search-bar">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" placeholder="Search for pets, appointments, or tips...">
+                    <input type="text" id="dashboard-search" placeholder="Search for pets, appointments, or tips...">
                 </div>
                 <div class="header-actions">
-                    <button class="icon-btn">
-                        <i class="fa-regular fa-bell"></i>
-                        <span class="notification-dot"></span>
-                    </button>
-                    <a href="mypets.php" class="btn btn-primary btn-sm">
-                        <i class="fa-solid fa-plus"></i> Add Pet
+                    <div class="notif-wrapper" style="position: relative;">
+                        <button type="button" class="icon-btn" id="notif-trigger" style="border: none; background: #f1f5f9; cursor: pointer;">
+                            <i class="fa-regular fa-bell"></i>
+                            <span class="notification-dot" style="background: #3b82f6; position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; border-radius: 50%; border: 2px solid #fff;"></span>
+                        </button>
+                        <div class="notif-dropdown" id="notif-dropdown" style="display: none; position: absolute; top: calc(100% + 10px); right: 0; width: 320px; background: white; border-radius: 1rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); border: 1px solid #f1f5f9; z-index: 9999; overflow: hidden;">
+                            <div class="notif-header" style="padding: 1rem 1.25rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                                <h3 style="font-family: 'Outfit'; font-size: 1rem; font-weight: 700; margin: 0;">Notifications</h3>
+                                <span style="font-size: 0.75rem; color: #3b82f6; font-weight: 600;">3 New</span>
+                            </div>
+                            <div class="notif-list" style="max-height: 350px; overflow-y: auto;">
+                                <a href="schedule.php" class="notif-item" style="padding: 1rem 1.25rem; display: flex; gap: 1rem; border-bottom: 1px solid #f8fafc; text-decoration: none; color: inherit; transition: background 0.2s;">
+                                    <div class="notif-icon" style="width: 36px; height: 36px; border-radius: 50%; background: #eff6ff; color: #3b82f6; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-calendar-check"></i></div>
+                                    <div class="notif-content">
+                                        <div class="notif-title" style="font-size: 0.85rem; font-weight: 600; color: #1e293b;">Upcoming Appointment</div>
+                                        <div class="notif-desc" style="font-size: 0.75rem; color: #64748b; line-height: 1.4;">Leo's vaccination scheduled for tomorrow at 10 AM.</div>
+                                        <div class="notif-time" style="font-size: 0.7rem; color: #94a3b8; margin-top: 0.5rem;">2 hours ago</div>
+                                    </div>
+                                </a>
+                                <a href="smart-feeder.php" class="notif-item" style="padding: 1rem 1.25rem; display: flex; gap: 1rem; border-bottom: 1px solid #f8fafc; text-decoration: none; color: inherit; transition: background 0.2s;">
+                                    <div class="notif-icon" style="width: 36px; height: 36px; border-radius: 50%; background: #ecfdf5; color: #10b981; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-bone"></i></div>
+                                    <div class="notif-content">
+                                        <div class="notif-title" style="font-size: 0.85rem; font-weight: 600; color: #1e293b;">Smart Feeder Alert</div>
+                                        <div class="notif-desc" style="font-size: 0.75rem; color: #64748b; line-height: 1.4;">Tank's lunch successfully dispensed (45g).</div>
+                                        <div class="notif-time" style="font-size: 0.7rem; color: #94a3b8; margin-top: 0.5rem;">4 hours ago</div>
+                                    </div>
+                                </a>
+                                <a href="lost-pet-reports.php" class="notif-item" style="padding: 1rem 1.25rem; display: flex; gap: 1rem; border-bottom: 1px solid #f8fafc; text-decoration: none; color: inherit; transition: background 0.2s;">
+                                    <div class="notif-icon" style="width: 36px; height: 36px; border-radius: 50%; background: #fff1f2; color: #ef4444; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-bullhorn"></i></div>
+                                    <div class="notif-content">
+                                        <div class="notif-title" style="font-size: 0.85rem; font-weight: 600; color: #1e293b;">Lost Pet Nearby</div>
+                                        <div class="notif-desc" style="font-size: 0.75rem; color: #64748b; line-height: 1.4;">A report was filed 2km away from your location.</div>
+                                        <div class="notif-time" style="font-size: 0.7rem; color: #94a3b8; margin-top: 0.5rem;">Yesterday</div>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="notif-footer" style="padding: 0.75rem; text-align: center; background: #f8fafc;">
+                                <a href="#" style="font-size: 0.8rem; font-weight: 600; color: #3b82f6; text-decoration: none;">See all activities</a>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="mypets.php" class="btn" style="background: #4b5e71; color: white; padding: 0.75rem 1.75rem; border-radius: 0.75rem; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.5px;">
+                        ADD A PET
                     </a>
                 </div>
             </header>
@@ -243,66 +313,22 @@ if (!$currentReminder) {
                     </style>
                 <?php endif; ?>
 
-                <!-- Hero Section (Professional/Premium Design) -->
+                <!-- Hero Section (matching Image 0) -->
                 <section class="dashboard-hero"
-                    style="background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)), url('images/dashboard_hero.png'); background-size: cover; background-position: center 30%; color: white; padding: 4rem 3.5rem; border-radius: 2rem; margin-bottom: 3rem; position: relative; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);">
+                    style="background: url('images/dashboard_hero_v3.png'); background-size: cover; background-position: center; padding: 0; border-radius: 2.5rem; margin-bottom: 3rem; position: relative; overflow: hidden; box-shadow: var(--shadow-premium); min-height: 380px; display: flex; align-items: flex-end;">
 
-                    <div class="hero-overlay" style="position: relative; z-index: 2;">
-                        <!-- Muted Dark Badge -->
-                        <?php
-                        require_once 'config.php';
-                        $gatewayMode = (defined('PAYMENT_MODE') && PAYMENT_MODE === 'live') ? 'LIVE' : 'TEST';
-                        $statusColor = ($currentReminder['id'] > 0) ? '#ff4757' : '#2ed573';
-                        ?>
-                        <?php if ($currentReminder['id'] > 0): ?>
-                        <div class="health-alert-badge"
-                            style="background: #1e293b; display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.6rem 1.25rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 800; margin-bottom: 1.5rem; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 12px rgba(0,0,0,0.2); text-transform: uppercase; letter-spacing: 1px; color: white;">
-                            <span class="alert-dot"
-                                style="height: 10px; width: 10px; background: <?php echo $statusColor; ?>; border-radius: 50%; display: inline-block; box-shadow: 0 0 10px <?php echo $statusColor; ?>;"></span>
-                            URGENT: HEALTH ALERT
-                        </div>
-                        <?php endif; ?>
-
-                        <!-- Premium Dark Navy Heading -->
-                        <h1
-                            style="font-size: 3.8rem; margin-bottom: 1.25rem; font-family: 'Outfit'; font-weight: 700; letter-spacing: -2px; line-height: 1.05; color: #0f172a; text-shadow: 0 2px 4px rgba(255,255,255,0.1);">
-                            Good Morning, <?php echo htmlspecialchars(explode(' ', $user_name)[0]); ?>!
+                    <!-- Glassmorphism Box Overlay (Image 0 style) -->
+                    <div class="hero-box-overlay" style="background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(12px); width: 100%; padding: 4rem 3.5rem; border-radius: 0 0 2.5rem 2.5rem; border-top: 1px solid rgba(255,255,255,0.3);">
+                        <h1 style="font-size: 4.2rem; font-family: 'Outfit'; font-weight: 800; color: #0f172a; margin-bottom: 0.75rem; letter-spacing: -3px; line-height: 1;">
+                            <?php echo $greeting; ?>, <?php echo htmlspecialchars(strtolower(explode(' ', $user_name)[0])); ?>!
                         </h1>
-
-                        <!-- Message with Bold Highlight -->
-                        <p
-                            style="opacity: 0.9; font-size: 1.4rem; font-weight: 500; margin-bottom: 2.5rem; color: #1e293b; max-width: 600px;">
-                            <?php
-                            $message = htmlspecialchars($currentReminder['pet_name'] . ' ' . $currentReminder['message']);
-                            echo str_replace('30 minutes', '<strong style="font-weight:800; text-decoration: underline; text-decoration-color: #10b981;">30 minutes</strong>', $message);
-                            ?>
+                        <p style="font-size: 1.35rem; font-weight: 500; color: #1e293b; max-width: 700px; line-height: 1.4; opacity: 0.9;">
+                            <?php echo htmlspecialchars($currentReminder['pet_name'] . ' ' . $currentReminder['message']); ?>
                         </p>
-
-                        <?php if ($currentReminder['id'] > 0): ?>
-                            <div class="hero-actions" style="display: flex; gap: 1.25rem;">
-                                <form method="POST">
-                                    <input type="hidden" name="reminder_id" value="<?php echo $currentReminder['id']; ?>">
-                                    <input type="hidden" name="action" value="complete">
-                                    <button type="submit" class="btn action-btn"
-                                        style="background: #10b981; color: white; border: none; padding: 1rem 2rem; border-radius: 1rem; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; font-size: 1rem; transition: 0.3s; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
-                                        <i class="fa-solid fa-circle-check"></i> Mark as Done
-                                    </button>
-                                </form>
-                                <form method="POST">
-                                    <input type="hidden" name="reminder_id" value="<?php echo $currentReminder['id']; ?>">
-                                    <input type="hidden" name="action" value="defer">
-                                    <button type="submit" class="btn action-btn"
-                                        style="background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.3); padding: 1rem 2rem; border-radius: 1rem; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; font-size: 1rem; backdrop-filter: blur(12px); transition: 0.3s;">
-                                        <i class="fa-regular fa-clock"></i> Defer 1 Hour
-                                    </button>
-                                </form>
-                            </div>
-                        <?php endif; ?>
                     </div>
 
-                    <!-- Decorative Paw Print -->
-                    <div
-                        style="position: absolute; right: -30px; top: 50%; transform: translateY(-50%); opacity: 0.1; font-size: 15rem; pointer-events: none;">
+                    <!-- Decorative Paw Print (Image 0 style) -->
+                    <div style="position: absolute; right: 2rem; top: 2rem; opacity: 0.15; font-size: 12rem; color: #0f172a; pointer-events: none;">
                         <i class="fa-solid fa-paw"></i>
                     </div>
                 </section>
@@ -609,6 +635,50 @@ if (!$currentReminder) {
                                 </div>
                             <?php endif; ?>
                         </div>
+
+                        <!-- My Adoption Listings Section -->
+                        <?php if (!empty($myAdoptions)): ?>
+                        <div class="card adoption-status-card" 
+                            style="background: white; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-top: 2rem; border-left: 4px solid #10b981;">
+                            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                <div class="icon-title" style="display: flex; align-items: center; gap: 1rem;">
+                                    <div class="icon-green" style="width: 40px; height: 40px; background: #d1fae5; color: #10b981; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fa-solid fa-heart-pulse"></i>
+                                    </div>
+                                    <h4 style="font-size: 1rem;">My Adoption Listings</h4>
+                                </div>
+                                <a href="pet-rehoming.php" style="font-size: 0.75rem; color: #3b82f6; text-decoration: none;">Manage All</a>
+                            </div>
+
+                            <div class="adoption-list">
+                                <?php foreach ($myAdoptions as $pet): ?>
+                                    <div class="adoption-item" style="display:flex; align-items:center; gap:1rem; padding: 1rem; border: 1px solid #f3f4f6; border-radius: 0.75rem; margin-bottom: 0.75rem;">
+                                        <img src="<?php echo htmlspecialchars($pet['image_url']); ?>" style="width: 45px; height: 45px; border-radius: 0.5rem; object-fit: cover;">
+                                        <div style="flex:1;">
+                                            <h5 style="margin:0; font-size:0.95rem; color:#1e293b;"><?php echo htmlspecialchars($pet['pet_name']); ?></h5>
+                                            <span style="font-size:0.8rem; color:#64748b;"><?php echo ucfirst($pet['pet_type']); ?> • <?php echo htmlspecialchars($pet['breed']); ?></span>
+                                        </div>
+                                        <div style="display: flex; gap: 0.5rem;">
+                                            <form method="POST">
+                                                <input type="hidden" name="listing_id" value="<?php echo $pet['id']; ?>">
+                                                <input type="hidden" name="listing_action" value="mark_adopted">
+                                                <button type="submit" title="Mark Adopted" style="background:#d1fae5; border:none; cursor:pointer; color:#10b981; width:30px; height:30px; border-radius:0.4rem; display:flex; align-items:center; justify-content:center;">
+                                                    <i class="fa-solid fa-check"></i>
+                                                </button>
+                                            </form>
+                                            <form method="POST" onsubmit="return confirm('Remove this listing from adoption?');">
+                                                <input type="hidden" name="listing_id" value="<?php echo $pet['id']; ?>">
+                                                <input type="hidden" name="listing_action" value="delete">
+                                                <button type="submit" title="Cancel Adoption" style="background:#fee2e2; border:none; cursor:pointer; color:#ef4444; width:30px; height:30px; border-radius:0.4rem; display:flex; align-items:center; justify-content:center;">
+                                                    <i class="fa-solid fa-xmark"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
 
                         <!-- Lost Pets Near You Section -->
                         <div id="lost-pets-section" class="card lost-pets-card" 
@@ -947,6 +1017,67 @@ if (!$currentReminder) {
             } else {
                 alert('Error: ' + data.message);
             }
+        }
+
+        // Global Search Functionality
+        const searchInput = document.getElementById('dashboard-search');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    const query = this.value.toLowerCase().trim();
+                    if (!query) return;
+
+                    // 1. Check for page keywords
+                    if (query.includes('pet') || query.includes('adopt')) {
+                        window.location.href = 'adoption.php?search=' + encodeURIComponent(query);
+                    } else if (query.includes('shop') || query.includes('buy') || query.includes('food')) {
+                        window.location.href = 'marketplace.php?search=' + encodeURIComponent(query);
+                    } else if (query.includes('health') || query.includes('record')) {
+                        window.location.href = 'health-records.php';
+                    } else if (query.includes('appoint') || query.includes('visit')) {
+                        window.location.href = 'schedule.php';
+                    } else {
+                        // Default: search in marketplace
+                        window.location.href = 'marketplace.php?search=' + encodeURIComponent(query);
+                    }
+                }
+            });
+
+            // Optional: Live filtering of on-page cards
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                const cards = document.querySelectorAll('.card');
+                
+                cards.forEach(card => {
+                    const text = card.innerText.toLowerCase();
+                    if (text.includes(query)) {
+                        card.style.display = '';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // Notification Dropdown Toggle
+        const notifTrigger = document.getElementById('notif-trigger');
+        const notifDropdown = document.getElementById('notif-dropdown');
+
+        if (notifTrigger && notifDropdown) {
+            notifTrigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (notifDropdown.style.display === 'none') {
+                    notifDropdown.style.display = 'block';
+                } else {
+                    notifDropdown.style.display = 'none';
+                }
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!notifDropdown.contains(e.target) && !notifTrigger.contains(e.target)) {
+                    notifDropdown.style.display = 'none';
+                }
+            });
         }
     </script>
 </body>

@@ -4,23 +4,28 @@
 */
 
 :root {
-    /* Colors */
-    --primary-color: #10b981;
-    /* Green from login design */
-    --primary-hover: #059669;
-    --text-main: #111827;
-    --text-muted: #6b7280;
-    --bg-light: #f3f4f6;
+    /* Colors - Premium Palette */
+    --primary-color: #3b82f6;
+    /* Premium Blue */
+    --primary-hover: #2563eb;
+    --text-main: #0f172a;
+    /* Dark Navy */
+    --text-muted: #64748b;
+    --bg-light: #fefcf9;
+    /* Premium Cream/Beige */
     --white: #ffffff;
-    --border-color: #e5e7eb;
+    --border-color: #f1f5f9;
+
+    /* Premium accents */
+    --accent-yellow: #fde68a;
+    --accent-green: #10b981;
 
     /* Gradients */
-    --glass-bg: rgba(255, 255, 255, 0.9);
+    --glass-bg: rgba(255, 255, 255, 0.7);
 
     /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 * {
@@ -468,22 +473,24 @@ a {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    color: var(--text-muted);
-    font-weight: 500;
-    border-radius: 0.5rem;
+    padding: 0.85rem 1.25rem;
+    color: #64748b;
+    font-weight: 600;
+    border-radius: 1rem;
     text-decoration: none;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-item:hover {
-    background-color: #f9fafb;
-    color: var(--text-main);
+    background-color: rgba(59, 130, 246, 0.05);
+    color: var(--primary-color);
+    transform: translateX(5px);
 }
 
 .nav-item.active {
-    background-color: rgba(16, 185, 129, 0.1);
-    color: var(--primary-color);
+    background-color: #3b82f6;
+    color: white;
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
 }
 
 .nav-badge {
@@ -558,11 +565,19 @@ a {
 
 .search-bar input {
     width: 100%;
-    padding: 0.5rem 1rem 0.5rem 2.5rem;
-    border: 1px solid #f3f4f6;
-    background: #f9fafb;
+    padding: 0.6rem 1rem 0.6rem 2.75rem;
+    border: 2px solid #1e293b;
+    background: #ffffff;
     border-radius: 2rem;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.search-bar input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    background: white;
 }
 
 .search-bar i {
@@ -583,14 +598,145 @@ a {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    border: 1px solid var(--border-color);
-    background: white;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: #64748b;
     position: relative;
     cursor: pointer;
-    color: var(--text-muted);
+    transition: all 0.2s;
+}
+
+.icon-btn:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.notification-dot {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.notif-wrapper {
+    position: relative;
+}
+
+.notif-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 320px;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #f1f5f9;
+    display: none;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.notif-dropdown.active {
+    display: block;
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notif-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notif-header h3 {
+    font-family: 'Outfit';
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.notif-list {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.notif-item {
+    padding: 1rem 1.25rem;
+    display: flex;
+    gap: 1rem;
+    border-bottom: 1px solid #f8fafc;
+    transition: background 0.2s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+.notif-item:hover {
+    background: #f8fafc;
+}
+
+.notif-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #eff6ff;
+    color: #3b82f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.notif-content {
+    flex: 1;
+}
+
+.notif-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #1e293b;
+}
+
+.notif-desc {
+    font-size: 0.75rem;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+.notif-time {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    margin-top: 0.5rem;
+}
+
+.notif-footer {
+    padding: 0.75rem;
+    text-align: center;
+    background: #f8fafc;
+}
+
+.notif-footer a {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #3b82f6;
+    text-decoration: none;
 }
 
 .notification-dot {

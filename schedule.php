@@ -599,7 +599,7 @@ $allPets = $petsStmt->fetchAll();
 
     <nav class="navbar">
         <a href="dashboard.php" class="logo">
-            <i class="fa-solid fa-cloud"></i> PetCloud
+            <img src="images/logo.png" alt="PetCloud Logo" style="height: 60px; width: auto; object-fit: contain;">
         </a>
         <div class="nav-links">
             <a href="dashboard.php">Home</a>

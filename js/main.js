@@ -109,7 +109,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update Greeting (Hero)
             const greeting = document.querySelector('.hero-overlay h1');
-            if (greeting) greeting.textContent = `Good Morning, ${user.name.split(' ')[0]}!`;
+            if (greeting) {
+                const hour = new Date().getHours();
+                let txt = "Good Morning";
+                if (hour >= 12 && hour < 17) txt = "Good Afternoon";
+                else if (hour >= 17 && hour < 21) txt = "Good Evening";
+                else if (hour >= 21 || hour < 5) txt = "Good Night";
+                greeting.textContent = `${txt}, ${user.name.split(' ')[0]}!`;
+            }
 
         } catch (e) {
             console.error("Error parsing user data", e);

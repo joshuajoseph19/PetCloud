@@ -44,11 +44,7 @@
         <!-- Right Side: Reset Form -->
         <div class="auth-right">
             <div class="brand-logo">
-                <div class="logo-icon-bg"
-                    style="background-color: #f59e0b; color: white; /* Amber for alert/warning/reset vibe, or stick to brand green/blue? Stick to brand green for consistency or Blue/Green mix. I'll use Green to be safe. */ background-color: #d1fae5; color: #10b981;">
-                    <i class="fa-solid fa-paw"></i>
-                </div>
-                <span>PetCloud</span>
+                <img src="images/logo.png" alt="PetCloud Logo" style="height: 40px; width: auto; object-fit: contain;">
             </div>
 
             <div class="auth-header">

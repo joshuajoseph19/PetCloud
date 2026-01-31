@@ -108,27 +108,6 @@ $user_name = $_SESSION['user_name'] ?? 'Pet Lover';
         .top-header {
             justify-content: center !important;
         }
-
-        .search-container {
-            background: #f9fafb;
-            padding: 0.6rem 1.25rem;
-            border-radius: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            width: 100%;
-            max-width: 500px;
-            border: 1px solid #e5e7eb;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .search-container input {
-            background: transparent;
-            border: none;
-            outline: none;
-            width: 100%;
-            font-size: 0.95rem;
-        }
     </style>
 </head>
 
@@ -136,12 +115,9 @@ $user_name = $_SESSION['user_name'] ?? 'Pet Lover';
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="sidebar-brand">
-                <i class="fa-solid fa-paw sidebar-logo-icon"></i>
-                <div class="brand-text">
-                    <span class="brand-name">PetCloud</span>
-                    <span class="brand-sub">DASHBOARD</span>
-                </div>
+            <div class="sidebar-brand"
+                style="padding: 0.5rem 1.5rem 0; display: flex; align-items: flex-start; margin-bottom: 0;">
+                <img src="images/logo.png" alt="PetCloud Logo" style="width: 180px; height: auto; object-fit: contain;">
             </div>
             <nav class="sidebar-nav">
                 <a href="dashboard.php" class="nav-item">
@@ -155,6 +131,9 @@ $user_name = $_SESSION['user_name'] ?? 'Pet Lover';
                 </a>
                 <a href="mypets.php" class="nav-item">
                     <i class="fa-solid fa-paw"></i> My Pets
+                </a>
+                <a href="smart-feeder.php" class="nav-item">
+                    <i class="fa-solid fa-microchip"></i> Smart Feeder
                 </a>
                 <a href="my-orders.php" class="nav-item">
                     <i class="fa-solid fa-bag-shopping"></i> My Orders
@@ -180,8 +159,8 @@ $user_name = $_SESSION['user_name'] ?? 'Pet Lover';
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
-                <div class="search-container">
-                    <i class="fa-solid fa-magnifying-glass" style="color: #9ca3af;"></i>
+                <div class="search-bar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
                     <input type="text" id="pet-search" placeholder="Search for pets to adopt...">
                 </div>
             </header>

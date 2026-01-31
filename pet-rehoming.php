@@ -15,6 +15,25 @@ $user_name = $_SESSION['user_name'] ?? 'Pet Lover';
 $stmt = $pdo->prepare("SELECT * FROM adoption_listings WHERE user_id = ? ORDER BY created_at DESC");
 $stmt->execute([$user_id]);
 $myListings = $stmt->fetchAll();
+
+// Handle Actions
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['listing_action'])) {
+    $lid = $_POST['listing_id'];
+    $action = $_POST['listing_action'];
+
+    // Verify ownership
+    $check = $pdo->prepare("SELECT id FROM adoption_listings WHERE id = ? AND user_id = ?");
+    $check->execute([$lid, $user_id]);
+    if ($check->fetch()) {
+        if ($action == 'delete') {
+            $pdo->prepare("DELETE FROM adoption_listings WHERE id = ?")->execute([$lid]);
+        } elseif ($action == 'mark_adopted') {
+            $pdo->prepare("UPDATE adoption_listings SET status = 'adopted' WHERE id = ?")->execute([$lid]);
+        }
+        header("Location: pet-rehoming.php?success=1");
+        exit();
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -93,12 +112,9 @@ $myListings = $stmt->fetchAll();
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="sidebar-brand">
-                <i class="fa-solid fa-paw sidebar-logo-icon"></i>
-                <div class="brand-text">
-                    <span class="brand-name">PetCloud</span>
-                    <span class="brand-sub">DASHBOARD</span>
-                </div>
+            <div class="sidebar-brand"
+                style="padding: 0.5rem 1.5rem 0; display: flex; align-items: flex-start; margin-bottom: 0;">
+                <img src="images/logo.png" alt="PetCloud Logo" style="width: 180px; height: auto; object-fit: contain;">
             </div>
             <nav class="sidebar-nav">
                 <a href="dashboard.php" class="nav-item"><i class="fa-solid fa-table-cells-large"></i> Overview</a>
@@ -106,6 +122,7 @@ $myListings = $stmt->fetchAll();
                 <a href="pet-rehoming.php" class="nav-item active"><i class="fa-solid fa-house-chimney-user"></i> Pet
                     Rehoming</a>
                 <a href="mypets.php" class="nav-item"><i class="fa-solid fa-paw"></i> My Pets</a>
+                <a href="smart-feeder.php" class="nav-item"><i class="fa-solid fa-microchip"></i> Smart Feeder</a>
                 <a href="schedule.php" class="nav-item"><i class="fa-regular fa-calendar"></i> Schedule</a>
                 <a href="marketplace.php" class="nav-item"><i class="fa-solid fa-bag-shopping"></i> Marketplace</a>
                 <a href="health-records.php" class="nav-item"><i class="fa-solid fa-notes-medical"></i> Health
@@ -172,14 +189,25 @@ $myListings = $stmt->fetchAll();
                                 </div>
                                 <div style="display: flex; gap: 0.5rem;">
                                     <?php if ($pet['status'] == 'active'): ?>
-                                        <button class="icon-btn" title="Mark Adopted"
-                                            style="color: #10b981; border: 1px solid #d1fae5; background: #ecfdf5;"><i
-                                                class="fa-solid fa-check"></i></button>
+                                        <form method="POST" style="display: inline;">
+                                            <input type="hidden" name="listing_id" value="<?php echo $pet['id']; ?>">
+                                            <input type="hidden" name="listing_action" value="mark_adopted">
+                                            <button type="submit" class="icon-btn" title="Mark Adopted"
+                                                style="color: #10b981; border: 1px solid #d1fae5; background: #ecfdf5; cursor: pointer;">
+                                                <i class="fa-solid fa-check"></i>
+                                            </button>
+                                        </form>
                                     <?php endif; ?>
-                                    <button class="icon-btn" title="Edit" style="color: #3b82f6;"><i
-                                            class="fa-solid fa-pen"></i></button>
-                                    <button class="icon-btn" title="Delete" style="color: #ef4444;"><i
-                                            class="fa-solid fa-trash"></i></button>
+
+                                    <form method="POST" style="display: inline;"
+                                        onsubmit="return confirm('Are you sure you want to remove this listing?');">
+                                        <input type="hidden" name="listing_id" value="<?php echo $pet['id']; ?>">
+                                        <input type="hidden" name="listing_action" value="delete">
+                                        <button type="submit" class="icon-btn" title="Delete"
+                                            style="color: #ef4444; border: 1px solid #fee2e2; background: #fffcfc; cursor: pointer;">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         <?php endforeach; ?>

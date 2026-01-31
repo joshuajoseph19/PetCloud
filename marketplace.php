@@ -49,7 +49,13 @@ if (isset($_POST['action']) && $_POST['action'] == 'add_to_cart') {
 }
 
 // --- Fetch Products ---
-$stmt = $pdo->query("SELECT * FROM products ORDER BY id ASC");
+$search = $_GET['search'] ?? '';
+if ($search) {
+    $stmt = $pdo->prepare("SELECT * FROM products WHERE name LIKE ? OR description LIKE ? ORDER BY id ASC");
+    $stmt->execute(["%$search%", "%$search%"]);
+} else {
+    $stmt = $pdo->query("SELECT * FROM products ORDER BY id ASC");
+}
 $products = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
@@ -149,17 +155,15 @@ $products = $stmt->fetchAll();
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="sidebar-brand">
-                <i class="fa-solid fa-paw sidebar-logo-icon"></i>
-                <div class="brand-text">
-                    <span class="brand-name">PetCloud</span>
-                    <span class="brand-sub">DASHBOARD</span>
-                </div>
+            <div class="sidebar-brand"
+                style="padding: 0.5rem 1.5rem 0; display: flex; align-items: flex-start; margin-bottom: 0;">
+                <img src="images/logo.png" alt="PetCloud Logo" style="width: 180px; height: auto; object-fit: contain;">
             </div>
             <nav class="sidebar-nav">
                 <a href="dashboard.php" class="nav-item"><i class="fa-solid fa-table-cells-large"></i> Overview</a>
                 <a href="adoption.php" class="nav-item"><i class="fa-solid fa-heart"></i> Adoption</a>
                 <a href="mypets.php" class="nav-item"><i class="fa-solid fa-paw"></i> My Pets</a>
+                <a href="smart-feeder.php" class="nav-item"><i class="fa-solid fa-microchip"></i> Smart Feeder</a>
                 <a href="my-orders.php" class="nav-item"><i class="fa-solid fa-bag-shopping"></i> My Orders</a>
                 <a href="schedule.php" class="nav-item"><i class="fa-regular fa-calendar"></i> Schedule</a>
                 <a href="marketplace.php" class="nav-item active"><i class="fa-solid fa-store"></i>

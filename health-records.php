@@ -647,8 +647,7 @@ $progress = round(($tasksCompleted / $totalTasks) * 100);
     <nav class="top-nav">
         <div class="container nav-content">
             <div class="brand">
-                <i class="fa-solid fa-paw"></i>
-                <span>PetCloud</span>
+                <img src="images/logo.png" alt="PetCloud Logo" style="height: 60px; width: auto; object-fit: contain;">
             </div>
             <div class="nav-links">
                 <a href="dashboard.php" class="nav-link">Dashboard</a>

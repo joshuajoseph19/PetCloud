@@ -2,15 +2,8 @@
 <aside class="sidebar"
     style="width: 280px; background: #fff; border-right: 1px solid #e5e7eb; height: 100vh; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; z-index: 1000;">
     <div class="sidebar-brand"
-        style="padding: 2rem; display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid #f3f4f6;">
-        <i class="fa-solid fa-paw" style="color: #4f46e5; font-size: 1.5rem;"></i>
-        <div class="brand-text">
-            <span class="brand-name"
-                style="font-family: 'Outfit'; font-weight: 700; font-size: 1.25rem; color: #111827;">PetCloud</span>
-            <span class="brand-sub"
-                style="display: block; font-size: 0.75rem; color: #6b7280; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">Partner
-                Portal</span>
-        </div>
+        style="padding: 0.5rem 1.5rem 0; display: flex; align-items: flex-start; border-bottom: 1px solid #f3f4f6; margin-bottom: 0;">
+        <img src="images/logo.png" alt="PetCloud Logo" style="width: 180px; height: auto; object-fit: contain;">
     </div>
 
     <nav class="sidebar-nav" style="flex: 1; padding: 1.5rem 1rem; overflow-y: auto;">

@@ -255,12 +255,9 @@ $pets = $stmt->fetchAll();
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="sidebar-brand">
-                <i class="fa-solid fa-paw sidebar-logo-icon"></i>
-                <div class="brand-text">
-                    <span class="brand-name">PetCloud</span>
-                    <span class="brand-sub">DASHBOARD</span>
-                </div>
+            <div class="sidebar-brand"
+                style="padding: 0.5rem 1.5rem 0; display: flex; align-items: flex-start; margin-bottom: 0;">
+                <img src="images/logo.png" alt="PetCloud Logo" style="width: 180px; height: auto; object-fit: contain;">
             </div>
             <nav class="sidebar-nav">
                 <a href="dashboard.php" class="nav-item">
@@ -271,6 +268,9 @@ $pets = $stmt->fetchAll();
                 </a>
                 <a href="mypets.php" class="nav-item active">
                     <i class="fa-solid fa-paw"></i> My Pets
+                </a>
+                <a href="smart-feeder.php" class="nav-item">
+                    <i class="fa-solid fa-microchip"></i> Smart Feeder
                 </a>
                 <a href="schedule.php" class="nav-item">
                     <i class="fa-regular fa-calendar"></i> Schedule
@@ -530,8 +530,10 @@ $pets = $stmt->fetchAll();
     <!-- Mark as Lost Modal -->
     <div id="lostModal" class="modal">
         <div class="modal-content">
-            <h2 style="font-family: 'Outfit'; margin-bottom: 0.5rem; color: #ef4444;">Mark <span id="lostPetName"></span> as Lost</h2>
-            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 2rem;">Help us bring them home. Nearby users will be alerted.</p>
+            <h2 style="font-family: 'Outfit'; margin-bottom: 0.5rem; color: #ef4444;">Mark <span
+                    id="lostPetName"></span> as Lost</h2>
+            <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 2rem;">Help us bring them home. Nearby users
+                will be alerted.</p>
             <form id="lostPetForm" onsubmit="submitLostPet(event)">
                 <input type="hidden" id="lostPetId" name="pet_id">
                 <div class="form-group">
@@ -544,11 +546,15 @@ $pets = $stmt->fetchAll();
                 </div>
                 <div class="form-group">
                     <label>Description (Features, Collar, etc.)</label>
-                    <textarea name="description" rows="3" style="width: 100%; padding: 0.75rem; border: 1.5px solid #e5e7eb; border-radius: 0.75rem;"></textarea>
+                    <textarea name="description" rows="3"
+                        style="width: 100%; padding: 0.75rem; border: 1.5px solid #e5e7eb; border-radius: 0.75rem;"></textarea>
                 </div>
                 <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                    <button type="button" class="btn btn-outline" style="flex: 1;" onclick="closeLostModal()">Cancel</button>
-                    <button type="submit" class="btn" style="flex: 1; background: #ef4444; color: white; font-weight: 700; border: none; cursor: pointer;">Broadcast Alert</button>
+                    <button type="button" class="btn btn-outline" style="flex: 1;"
+                        onclick="closeLostModal()">Cancel</button>
+                    <button type="submit" class="btn"
+                        style="flex: 1; background: #ef4444; color: white; font-weight: 700; border: none; cursor: pointer;">Broadcast
+                        Alert</button>
                 </div>
             </form>
         </div>
@@ -568,7 +574,7 @@ $pets = $stmt->fetchAll();
             const formData = new FormData(e.target);
             const res = await fetch('api/mark_pet_lost.php', { method: 'POST', body: formData });
             const data = await res.json();
-            if(data.success) {
+            if (data.success) {
                 alert(data.message);
                 location.reload();
             } else {

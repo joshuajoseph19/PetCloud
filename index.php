@@ -89,11 +89,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <!-- Right Side: Login Form -->
         <div class="auth-right">
-            <div class="brand-logo">
-                <div class="logo-icon-bg">
-                    <i class="fa-solid fa-paw"></i>
-                </div>
-                <span>PetCloud</span>
+            <div class="brand-logo" style="margin-bottom: 2.5rem; text-align: center;">
+                <img src="images/logo.png" alt="PetCloud Logo" style="height: 60px; width: auto; object-fit: contain;">
             </div>
 
             <div class="auth-header">
