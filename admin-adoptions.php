@@ -11,7 +11,28 @@ if (!isset($_SESSION['admin_logged_in'])) {
 if (isset($_POST['update_adoption'])) {
     $requestId = $_POST['request_id'];
     $newStatus = $_POST['status'];
+
+    // 1. Fetch the listing_id for this application before updating
+    $stmt = $pdo->prepare("SELECT listing_id, status FROM adoption_applications WHERE id = ?");
+    $stmt->execute([$requestId]);
+    $app = $stmt->fetch();
+    $oldStatus = $app['status'] ?? '';
+    $listingId = $app['listing_id'] ?? null;
+
+    // 2. Update Application Status
     $pdo->prepare("UPDATE adoption_applications SET status = ? WHERE id = ?")->execute([$newStatus, $requestId]);
+
+    // 3. Sync Pet Listing Status
+    if ($listingId) {
+        if ($newStatus === 'approved') {
+            // Mark as adopted
+            $pdo->prepare("UPDATE adoption_listings SET status = 'adopted' WHERE id = ?")->execute([$listingId]);
+        } elseif ($oldStatus === 'approved' && $newStatus !== 'approved') {
+            // Rollback: If it was approved (and thus hidden) and now it's not, make it active again
+            $pdo->prepare("UPDATE adoption_listings SET status = 'active' WHERE id = ?")->execute([$listingId]);
+        }
+    }
+
     header("Location: admin-adoptions.php?msg=Adoption status updated");
     exit;
 }
@@ -194,8 +215,8 @@ $requests = $stmt->fetchAll();
                                 <form method="POST" style="display: flex; gap: 0.4rem;">
                                     <input type="hidden" name="request_id" value="<?php echo $req['id']; ?>">
                                     <select name="status" class="select-status">
-                                        <option value="pending" <?php echo $req['status'] == 'pending' ? 'selected' : ''; ?>
-                                            >Pending</option>
+                                        <option value="pending" <?php echo $req['status'] == 'pending' ? 'selected' : ''; ?>>
+                                            Pending</option>
                                         <option value="approved" <?php echo $req['status'] == 'approved' ? 'selected' : ''; ?>>Approved</option>
                                         <option value="rejected" <?php echo $req['status'] == 'rejected' ? 'selected' : ''; ?>>Rejected</option>
                                     </select>

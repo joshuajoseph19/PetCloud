@@ -72,10 +72,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="auth-left">
             <img src="images/login_dog.png" alt="Happy Golden Retriever">
             <div class="auth-overlay">
-                <div class="trusted-badge">
-                    <span class="badge-dot"></span>
-                    Trusted by 50,000+ pet owners
-                </div>
+
                 <h1 class="auth-headline">
                     Give your pet <br>
                     the care they deserve.
@@ -90,7 +87,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <!-- Right Side: Login Form -->
         <div class="auth-right">
             <div class="brand-logo" style="margin-bottom: 2.5rem; text-align: center;">
-                <img src="images/logo.png" alt="PetCloud Logo" style="height: 60px; width: auto; object-fit: contain;">
+                <img src="images/logo.png" alt="PetCloud Logo" style="height: 80px; width: auto; object-fit: contain;">
             </div>
 
             <div class="auth-header">

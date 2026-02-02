@@ -10,32 +10,21 @@ if (!isset($_SESSION['user_id'])) {
 $success = false;
 $error = "";
 
-$pet_name = $_GET['pet'] ?? ($_POST['pet_name'] ?? '');
-
-// --- AUTO-FIX: Create Adoption Table If Missing ---
-try {
-    $pdo->query("SELECT 1 FROM adoption_applications LIMIT 1");
-} catch (PDOException $e) {
-    $sql = "CREATE TABLE IF NOT EXISTS adoption_applications (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NOT NULL,
-        pet_name VARCHAR(100) NOT NULL,
-        pet_category VARCHAR(50),
-        applicant_name VARCHAR(255) NOT NULL,
-        applicant_email VARCHAR(255) NOT NULL,
-        applicant_phone VARCHAR(20),
-        reason_for_adoption TEXT,
-        living_situation VARCHAR(100),
-        has_other_pets TINYINT(1),
-        status VARCHAR(20) DEFAULT 'pending',
-        applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id)
-    )";
-    $pdo->exec($sql);
+// --- Fetch Pet Details if listing_id is provided ---
+$listing_id = $_GET['listing_id'] ?? ($_POST['listing_id'] ?? null);
+if ($listing_id) {
+    $stmt = $pdo->prepare("SELECT * FROM adoption_listings WHERE id = ?");
+    $stmt->execute([$listing_id]);
+    $pet = $stmt->fetch();
+    if ($pet) {
+        $pet_name = $pet['pet_name'];
+        $pet_category = $pet['pet_type'];
+    }
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_application'])) {
     $user_id = $_SESSION['user_id'];
+    $listing_id = $_POST['listing_id'] ?: null;
     $pet_name = $_POST['pet_name'];
     $pet_category = $_POST['pet_category'];
     $full_name = $_POST['full_name'];
@@ -46,10 +35,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_application']))
     $other_pets = isset($_POST['other_pets']) ? 1 : 0;
 
     try {
-        $sql = "INSERT INTO adoption_applications (user_id, pet_name, pet_category, applicant_name, applicant_email, applicant_phone, reason_for_adoption, living_situation, has_other_pets) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO adoption_applications (user_id, listing_id, pet_name, pet_category, applicant_name, applicant_email, applicant_phone, reason_for_adoption, living_situation, has_other_pets) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
-        if ($stmt->execute([$user_id, $pet_name, $pet_category, $full_name, $email, $phone, $reason, $living, $other_pets])) {
+        if ($stmt->execute([$user_id, $listing_id, $pet_name, $pet_category, $full_name, $email, $phone, $reason, $living, $other_pets])) {
             $success = true;
         } else {
             $error = "Failed to submit application. Please try again.";
@@ -192,8 +181,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_application']))
             <?php endif; ?>
 
             <form method="POST">
+                <input type="hidden" name="listing_id" value="<?php echo htmlspecialchars($listing_id); ?>">
                 <input type="hidden" name="pet_name" value="<?php echo htmlspecialchars($pet_name); ?>">
-                <input type="hidden" name="pet_category" value="<?php echo htmlspecialchars($_GET['category'] ?? ''); ?>">
+                <input type="hidden" name="pet_category" value="<?php echo htmlspecialchars($pet_category); ?>">
 
                 <div class="form-group">
                     <label>Full Name</label>

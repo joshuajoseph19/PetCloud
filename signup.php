@@ -77,10 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="auth-left">
             <img src="images/signup_pets.png" alt="Dog and Cat Friends">
             <div class="auth-overlay">
-                <div class="trusted-badge">
-                    <span class="badge-dot"></span>
-                    Trusted by 50,000+ pet owners
-                </div>
+
                 <h1 class="auth-headline">
                     Keep your furry friends <br>
                     <span class="highlight-text">happy and full, no matter where you are.</span>
@@ -99,7 +96,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <!-- Right Side: Signup Form -->
         <div class="auth-right">
             <div class="brand-logo" style="margin-bottom: 2.5rem; text-align: center;">
-                <img src="images/logo.png" alt="PetCloud Logo" style="height: 60px; width: auto; object-fit: contain;">
+                <img src="images/logo.png" alt="PetCloud Logo" style="height: 80px; width: auto; object-fit: contain;">
             </div>
 
             <div class="auth-header">
