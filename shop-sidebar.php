@@ -1,12 +1,13 @@
 <!-- shop-sidebar.php -->
-<aside class="sidebar"
-    style="width: 280px; background: #fff; border-right: 1px solid #e5e7eb; height: 100vh; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; z-index: 1000;">
-    <div class="sidebar-brand"
-        style="padding: 0.5rem 1.5rem 0; display: flex; align-items: flex-start; border-bottom: 1px solid #f3f4f6; margin-bottom: 0;">
-        <img src="images/logo.png" alt="PetCloud Logo" style="width: 180px; height: auto; object-fit: contain;">
+<aside class="sidebar" id="shopSidebar">
+    <div class="sidebar-brand">
+        <img src="images/logo.png" alt="PetCloud Logo">
+        <button class="close-sidebar-btn" id="closeShopSidebarBtn">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
     </div>
 
-    <nav class="sidebar-nav" style="flex: 1; padding: 1.5rem 1rem; overflow-y: auto;">
+    <nav class="sidebar-nav">
         <a href="shopowner-dashboard.php"
             class="nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'shopowner-dashboard.php' ? 'active' : ''; ?>">
             <i class="fa-solid fa-chart-line"></i> Dashboard
@@ -49,18 +50,74 @@
         </a>
     </nav>
 
-    <div class="sidebar-footer" style="padding: 1.5rem; border-top: 1px solid #f3f4f6;">
+    <div class="sidebar-footer">
         <a href="shop-settings.php"
             class="nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'shop-settings.php' ? 'active' : ''; ?>">
             <i class="fa-solid fa-gear"></i> Settings
         </a>
-        <a href="logout.php" class="nav-item" style="color: #ef4444;">
+        <a href="logout.php" class="nav-item logout-link">
             <i class="fa-solid fa-right-from-bracket"></i> Logout
         </a>
     </div>
 </aside>
 
+<!-- Overlay for mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <style>
+    .sidebar {
+        width: 280px;
+        background: #fff;
+        border-right: 1px solid #e5e7eb;
+        height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        display: flex;
+        flex-direction: column;
+        z-index: 1000;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sidebar-brand {
+        padding: 0.5rem 1.5rem 0;
+        display: flex;
+        align-items: center;
+        /* Adjusted for better alignment */
+        border-bottom: 1px solid #f3f4f6;
+        margin-bottom: 0;
+        position: relative;
+    }
+
+    .sidebar-brand img {
+        width: 180px;
+        height: auto;
+        object-fit: contain;
+    }
+
+    .close-sidebar-btn {
+        display: none;
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: none;
+        border: none;
+        color: #64748b;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
+    .sidebar-nav {
+        flex: 1;
+        padding: 1.5rem 1rem;
+        overflow-y: auto;
+    }
+
+    .sidebar-footer {
+        padding: 1.5rem;
+        border-top: 1px solid #f3f4f6;
+    }
+
     .nav-item {
         display: flex;
         align-items: center;
@@ -101,4 +158,63 @@
         font-size: 0.7rem;
         font-weight: 700;
     }
+
+    .logout-link {
+        color: #ef4444;
+    }
+
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 1024px) {
+        .sidebar {
+            transform: translateX(-100%);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .close-sidebar-btn {
+            display: block;
+        }
+    }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const sidebar = document.getElementById('shopSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const closeBtn = document.getElementById('closeShopSidebarBtn');
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+        }
+
+        if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+        if (overlay) overlay.addEventListener('click', closeSidebar);
+
+        window.toggleShopSidebar = function () {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        };
+    });
+</script>

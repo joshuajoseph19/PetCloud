@@ -38,8 +38,11 @@ if (isset($_POST['decision'])) {
                 $userId = $existingUser['id'];
             } else {
                 // Create new user
-                $sqlUser = "INSERT INTO users (full_name, email, password, role) VALUES (?, ?, ?, 'shop_owner')";
-                $pdo->prepare($sqlUser)->execute([$app['full_name'], $app['email'], $app['password_hash']]);
+                // Use provided hash or generate default default for seed data
+                $password = !empty($app['password_hash']) ? $app['password_hash'] : password_hash('PetCloud123!', PASSWORD_DEFAULT);
+
+                $sqlUser = "INSERT INTO users (full_name, email, password_hash, role) VALUES (?, ?, ?, 'shop_owner')";
+                $pdo->prepare($sqlUser)->execute([$app['full_name'], $app['email'], $password]);
                 $userId = $pdo->lastInsertId();
             }
 
@@ -200,6 +203,15 @@ if (isset($_POST['decision'])) {
     <?php include 'admin-header.php'; ?>
 
     <main class="main-layout">
+        <?php if (isset($error)): ?>
+            <div
+                style="background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 0.5rem; margin-bottom: 2rem; border: 1px solid #fecaca;">
+                <i class="fa-solid fa-triangle-exclamation" style="margin-right: 0.5rem;"></i>
+                <strong>Error:</strong>
+                <?php echo htmlspecialchars($error); ?>
+            </div>
+        <?php endif; ?>
+
         <div class="page-header">
             <a href="admin-shop-approvals.php" class="btn-back"
                 style="padding: 0.5rem; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><i

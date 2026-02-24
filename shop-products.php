@@ -57,7 +57,10 @@ $products = $stmt->fetchAll();
         :root { --primary: #4f46e5; --bg: #f8fafc; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); }
-        .main-wrapper { margin-left: 280px; padding: 2.5rem; }
+        .main-wrapper { margin-left: 280px; padding: 2.5rem; transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        @media (max-width: 1024px) {
+            .main-wrapper { margin-left: 0; padding: 1.5rem; }
+        }
         
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
         .page-title h2 { font-family: 'Outfit'; font-size: 1.75rem; }

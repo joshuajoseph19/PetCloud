@@ -282,6 +282,9 @@ $pets = $stmt->fetchAll();
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
+                <button class="menu-toggle-btn" onclick="if(window.toggleUserSidebar) window.toggleUserSidebar();">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
                 <div class="search-bar">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <input type="text" id="petSearch" placeholder="Search your pets...">

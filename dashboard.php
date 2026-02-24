@@ -209,6 +209,9 @@ if (!$currentReminder) {
         <main class="main-content">
             <!-- Header -->
             <header class="top-header">
+                <button class="menu-toggle-btn" onclick="if(window.toggleUserSidebar) window.toggleUserSidebar();">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
                 <div class="search-bar">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <input type="text" id="dashboard-search" placeholder="Search for pets, appointments, or tips...">
@@ -416,7 +419,7 @@ if (!$currentReminder) {
                     </div>
                 </section>
 
-                <div class="dashboard-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+                <div class="dashboard-grid">
                     <!-- Column 1: Quick Actions & Schedule -->
                     <div class="grid-col-left">
                         <!-- Quick Actions Grid -->

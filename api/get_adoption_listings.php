@@ -5,6 +5,7 @@
  * 
  * Query Parameters:
  * - pet_type_id: Filter by pet type
+ * - pet_type: Filter by pet type slug (e.g., 'dog', 'cat')
  * - breed_id: Filter by specific breed
  * - breed_group_id: Filter by breed group (Pure/Mixed/Indie)
  * - city: Filter by city
@@ -17,12 +18,20 @@
  * - limit: Results per page (default: 12)
  */
 
+// Disable display errors to prevent HTML appending to JSON output
+ini_set('display_errors', 0);
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
-require_once '../db_connect.php';
 
 try {
+    require_once '../db_connect.php';
+
+    // Check for PDO
+    if (!isset($pdo)) {
+        throw new Exception("Database connection not available.");
+    }
+
     // Pagination
     $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
     $limit = isset($_GET['limit']) ? min(50, max(1, intval($_GET['limit']))) : 12;
@@ -31,68 +40,79 @@ try {
     // Build WHERE clause dynamically
     $whereClauses = ["prl.status = 'Approved'"];
     $params = [];
-    $types = "";
 
-    // Pet Type Filter
+    // Pet Type Filter (ID has priority, then Slug)
     if (isset($_GET['pet_type_id']) && !empty($_GET['pet_type_id'])) {
         $whereClauses[] = "prl.pet_type_id = ?";
         $params[] = intval($_GET['pet_type_id']);
-        $types .= "i";
+    } elseif (isset($_GET['pet_type']) && !empty($_GET['pet_type'])) {
+        // Look up ID from Slug
+        // Common mappings if DB lookup fails (fallback)
+        $slug = strtolower(trim($_GET['pet_type']));
+
+        // Try to find ID in DB first
+        $typeStmt = $pdo->prepare("SELECT id FROM pet_types WHERE LOWER(name) = ? OR id = ?"); // Assuming name matches slug-ish like 'Dog'
+        $typeStmt->execute([$slug, $slug]);
+        $typeRow = $typeStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($typeRow) {
+            $whereClauses[] = "prl.pet_type_id = ?";
+            $params[] = $typeRow['id'];
+        } else {
+            // Hardcoded fallback for common cases if DB is empty/mismatched
+            $map = ['dog' => 1, 'cat' => 2, 'bird' => 3, 'rabbit' => 4];
+            if (isset($map[$slug])) {
+                $whereClauses[] = "prl.pet_type_id = ?";
+                $params[] = $map[$slug];
+            }
+        }
     }
 
     // Breed Filter
     if (isset($_GET['breed_id']) && !empty($_GET['breed_id'])) {
         $whereClauses[] = "prl.breed_id = ?";
         $params[] = intval($_GET['breed_id']);
-        $types .= "i";
     }
 
     // Breed Group Filter
     if (isset($_GET['breed_group_id']) && !empty($_GET['breed_group_id'])) {
         $whereClauses[] = "b.breed_group_id = ?";
         $params[] = intval($_GET['breed_group_id']);
-        $types .= "i";
     }
 
     // City Filter
     if (isset($_GET['city']) && !empty($_GET['city'])) {
         $whereClauses[] = "prl.city LIKE ?";
         $params[] = "%" . $_GET['city'] . "%";
-        $types .= "s";
     }
 
     // State Filter
     if (isset($_GET['state']) && !empty($_GET['state'])) {
         $whereClauses[] = "prl.state LIKE ?";
         $params[] = "%" . $_GET['state'] . "%";
-        $types .= "s";
     }
 
     // Gender Filter
     if (isset($_GET['gender']) && !empty($_GET['gender'])) {
         $whereClauses[] = "prl.gender = ?";
         $params[] = $_GET['gender'];
-        $types .= "s";
     }
 
     // Size Filter
     if (isset($_GET['size']) && !empty($_GET['size'])) {
         $whereClauses[] = "prl.size = ?";
         $params[] = $_GET['size'];
-        $types .= "s";
     }
 
     // Age Filter (in months)
     if (isset($_GET['min_age']) && !empty($_GET['min_age'])) {
         $whereClauses[] = "((prl.age_years * 12) + COALESCE(prl.age_months, 0)) >= ?";
         $params[] = intval($_GET['min_age']);
-        $types .= "i";
     }
 
     if (isset($_GET['max_age']) && !empty($_GET['max_age'])) {
         $whereClauses[] = "((prl.age_years * 12) + COALESCE(prl.age_months, 0)) <= ?";
         $params[] = intval($_GET['max_age']);
-        $types .= "i";
     }
 
     $whereSQL = implode(" AND ", $whereClauses);
@@ -103,16 +123,14 @@ try {
                    LEFT JOIN breeds b ON prl.breed_id = b.id
                    WHERE $whereSQL";
 
-    $countStmt = $conn->prepare($countQuery);
-    if (!empty($params)) {
-        $countStmt->bind_param($types, ...$params);
-    }
-    $countStmt->execute();
-    $totalResult = $countStmt->get_result()->fetch_assoc();
+    $countStmt = $pdo->prepare($countQuery);
+    $countStmt->execute($params);
+    $totalResult = $countStmt->fetch(PDO::FETCH_ASSOC);
     $totalRecords = $totalResult['total'];
     $totalPages = ceil($totalRecords / $limit);
 
     // Get listings
+    // We inject LIMIT and OFFSET directly as they are sanitized integers
     $query = "SELECT 
                 prl.id,
                 prl.pet_name,
@@ -143,26 +161,25 @@ try {
               LEFT JOIN breed_groups bg ON b.breed_group_id = bg.id
               WHERE $whereSQL
               ORDER BY prl.is_featured DESC, prl.created_at DESC
-              LIMIT ? OFFSET ?";
+              LIMIT $limit OFFSET $offset";
 
-    $stmt = $conn->prepare($query);
-
-    // Add limit and offset to params
-    $params[] = $limit;
-    $params[] = $offset;
-    $types .= "ii";
-
-    if (!empty($params)) {
-        $stmt->bind_param($types, ...$params);
-    }
-
-    $stmt->execute();
-    $result = $stmt->get_result();
-
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
     $listings = [];
-    while ($row = $result->fetch_assoc()) {
+
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         // Calculate total age in months
         $totalMonths = ($row['age_years'] * 12) + ($row['age_months'] ?? 0);
+
+        // Format age display similar to screenshot "2" (years) or "5 months"
+        $ageDisplay = '';
+        if ($row['age_years'] > 0) {
+            $ageDisplay = strval($row['age_years']);
+        } elseif ($row['age_months'] > 0) {
+            $ageDisplay = $row['age_months'] . ' month' . ($row['age_months'] > 1 ? 's' : '');
+        } else {
+            $ageDisplay = 'Baby';
+        }
 
         $listings[] = [
             'id' => (int) $row['id'],
@@ -171,10 +188,7 @@ try {
                 'years' => (int) $row['age_years'],
                 'months' => (int) $row['age_months'],
                 'total_months' => $totalMonths,
-                'display' => $row['age_years'] > 0
-                    ? $row['age_years'] . ' year' . ($row['age_years'] > 1 ? 's' : '') .
-                    ($row['age_months'] > 0 ? ' ' . $row['age_months'] . ' month' . ($row['age_months'] > 1 ? 's' : '') : '')
-                    : $row['age_months'] . ' month' . ($row['age_months'] > 1 ? 's' : '')
+                'display' => $ageDisplay
             ],
             'gender' => $row['gender'],
             'size' => $row['size'],
@@ -197,7 +211,9 @@ try {
                 'name' => $row['breed_name'] ?? 'Unknown',
                 'group' => $row['breed_group'] ?? 'Unknown'
             ],
-            'image' => $row['primary_image'],
+            'image' => (strpos($row['primary_image'], 'http') === 0)
+                ? $row['primary_image']
+                : 'http://' . $_SERVER['HTTP_HOST'] . '/PetCloud/' . ltrim($row['primary_image'], '/'),
             'views' => (int) $row['views_count'],
             'is_featured' => (bool) $row['is_featured'],
             'posted_at' => $row['created_at']
@@ -216,13 +232,16 @@ try {
             'has_prev' => $page > 1
         ],
         'filters_applied' => array_filter($_GET, function ($key) {
-            return in_array($key, ['pet_type_id', 'breed_id', 'breed_group_id', 'city', 'state', 'gender', 'size', 'min_age', 'max_age']);
+            return in_array($key, ['pet_type_id', 'pet_type', 'breed_id', 'breed_group_id', 'city', 'state', 'gender', 'size', 'min_age', 'max_age']);
         }, ARRAY_FILTER_USE_KEY)
     ]);
 
-    $stmt->close();
-    $countStmt->close();
-
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'error' => 'Database error: ' . $e->getMessage()
+    ]);
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode([
@@ -231,5 +250,5 @@ try {
     ]);
 }
 
-$conn->close();
+$pdo = null;
 ?>

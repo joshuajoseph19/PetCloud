@@ -563,6 +563,9 @@ if ($selectedPetId) {
         <main class="main-content">
             <!-- Header -->
             <header class="top-header">
+                <button class="menu-toggle-btn" onclick="if(window.toggleUserSidebar) window.toggleUserSidebar();">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
                 <div class="search-bar">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <input type="text" placeholder="Search health records...">

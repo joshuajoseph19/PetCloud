@@ -26,6 +26,7 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - PetCloud</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700&display=swap"
@@ -53,6 +54,7 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
         .main-layout {
             margin-left: 260px;
             padding: 2.5rem;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .page-title {
@@ -216,6 +218,39 @@ $recentUsers = $pdo->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 5
             font-weight: 600;
             color: var(--primary);
             text-decoration: none;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 1024px) {
+            .main-layout {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+
+            .dashboard-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .admin-card {
+                padding: 1.5rem;
+            }
+
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .data-table {
+                display: block;
+                overflow-x: auto;
+            }
         }
     </style>
 </head>

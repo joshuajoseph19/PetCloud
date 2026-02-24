@@ -1041,3 +1041,129 @@ a {
     border-radius: 50%;
     margin-bottom: 0.5rem;
 }
+
+/* Responsive Dashboard Styles */
+@media (max-width: 1024px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        z-index: 1000;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--shadow-premium);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        width: 100%;
+    }
+
+    .top-header {
+        padding: 0 1.25rem;
+    }
+
+    .menu-toggle-btn {
+        display: block;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Adjust main layout margins if any exist in the page specific styles */
+    .dashboard-container {
+        flex-direction: column;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-hero {
+        min-height: auto !important;
+        padding: 2rem !important;
+        display: block !important;
+        height: auto;
+    }
+
+    .hero-box-overlay {
+        position: relative;
+        width: 100% !important;
+        border-radius: 1.5rem !important;
+        padding: 1.5rem !important;
+        backdrop-filter: none !important;
+        background: rgba(255, 255, 255, 0.9) !important;
+        margin-top: 100px;
+        /* Push down below the paw print if needed */
+    }
+
+    .hero-box-overlay h1 {
+        font-size: 2.5rem !important;
+    }
+
+    .search-bar {
+        display: none;
+        /* Hide search details on small mobile */
+    }
+
+    .daily-tasks-card,
+    .feeding-schedule-card,
+    .appointments-card,
+    .lost-pets-card {
+        padding: 1rem !important;
+    }
+}
+
+/* Base Styles for Hamburger & Overlay */
+.menu-toggle-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    margin-right: 1rem;
+}
+
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+.close-sidebar-btn {
+    display: none;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+    .close-sidebar-btn {
+        display: block;
+    }
+}

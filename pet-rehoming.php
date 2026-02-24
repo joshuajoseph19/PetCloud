@@ -115,6 +115,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['listing_action'])) {
 
         <main class="main-content">
             <header class="top-header">
+                <button class="menu-toggle-btn" onclick="if(window.toggleUserSidebar) window.toggleUserSidebar();">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
                 <div class="search-bar">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <input type="text" placeholder="Search...">

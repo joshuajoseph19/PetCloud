@@ -94,6 +94,9 @@ $reports = $stmt->fetchAll();
 
         <main class="main-content">
             <header class="top-header">
+                <button class="menu-toggle-btn" onclick="if(window.toggleUserSidebar) window.toggleUserSidebar();">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
                 <h1 style="font-family:'Outfit'; font-size: 1.75rem;">Found Pet Reports</h1>
             </header>
 

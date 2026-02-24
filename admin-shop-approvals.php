@@ -147,6 +147,17 @@ $apps = $stmt->fetchAll();
         .btn-view:hover {
             background: #e5e7eb;
         }
+
+        .btn-delete {
+            background: #fee2e2;
+            color: #ef4444;
+            margin-left: 0.5rem;
+        }
+
+        .btn-delete:hover {
+            background: #fecaca;
+            color: #dc2626;
+        }
     </style>
 </head>
 
@@ -155,6 +166,20 @@ $apps = $stmt->fetchAll();
     <?php include 'admin-header.php'; ?>
 
     <main class="main-layout">
+        <?php if (isset($_GET['msg'])): ?>
+            <div
+                style="background: #dcfce7; color: #166534; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border: 1px solid #bbf7d0;">
+                <i class="fa-solid fa-check-circle" style="margin-right: 0.5rem;"></i>
+                <?php echo htmlspecialchars($_GET['msg']); ?>
+            </div>
+        <?php endif; ?>
+        <?php if (isset($_GET['error'])): ?>
+            <div
+                style="background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border: 1px solid #fecaca;">
+                <i class="fa-solid fa-triangle-exclamation" style="margin-right: 0.5rem;"></i>
+                <?php echo htmlspecialchars($_GET['error']); ?>
+            </div>
+        <?php endif; ?>
         <div class="page-header">
             <h2 class="page-title">Shop Owner Applications</h2>
             <p style="color: #64748b;">Review and manage seller status for the PetCloud marketplace.</p>
@@ -199,6 +224,11 @@ $apps = $stmt->fetchAll();
                             <td>
                                 <a href="admin-view-shop.php?id=<?php echo $app['id']; ?>" class="btn-view">
                                     <i class="fa-solid fa-eye"></i> Review Application
+                                </a>
+                                <a href="admin-delete-shop-application.php?id=<?php echo $app['id']; ?>"
+                                    class="btn-view btn-delete"
+                                    onclick="return confirm('Are you sure you want to remove this shop owner application? This action cannot be undone.');">
+                                    <i class="fa-solid fa-trash"></i>
                                 </a>
                             </td>
                         </tr>

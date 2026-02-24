@@ -57,15 +57,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $days = isset($_POST['days']) ? json_encode($_POST['days']) : '[]';
         $diet_type = $_POST['diet_type'];
 
-        if ($pet_id && $meal_name && $time) {
+        if (empty($meal_name) || empty($time) || empty($portion) || empty($food_desc)) {
+            $error = "All fields are required.";
+        } elseif ($portion <= 0) {
+            $error = "Portion size must be greater than zero.";
+        } elseif ($days == '[]') {
+            $error = "Please select at least one day.";
+        } else {
             $stmt = $pdo->prepare("INSERT INTO feeding_schedules (user_id, pet_id, meal_name, food_description, feeding_time, portion_size, portion_unit, days_of_week, diet_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             if ($stmt->execute([$user_id, $pet_id, $meal_name, $food_desc, $time, $portion, $unit, $days, $diet_type])) {
                 $message = "Feeding routine added successfully!";
             } else {
                 $error = "Failed to add routine.";
             }
-        } else {
-            $error = "Please fill in all required fields.";
         }
     } elseif (isset($_POST['delete_schedule'])) {
         $id = $_POST['schedule_id'];
@@ -396,6 +400,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['mark_fed'])) {
 
         <!-- Main Content -->
         <main class="main-content">
+            <header class="top-header">
+                <button class="menu-toggle-btn" onclick="if(window.toggleUserSidebar) window.toggleUserSidebar();">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </header>
             <div class="content-wrapper">
                 <div class="feeding-container">
                     <!-- Header -->
@@ -457,7 +466,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['mark_fed'])) {
                                 <!-- Add Form -->
                                 <div class="card">
                                     <h3><i class="fa-solid fa-utensils"></i> Add Meal Routine</h3>
-                                    <form method="POST">
+                                    <form method="POST" id="addMealForm" onsubmit="return validateForm()">
+                                        <div id="js-error-msg"
+                                            style="display:none; color: #ef4444; background: #fee2e2; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; align-items: center; gap: 8px;">
+                                            <i class="fa-solid fa-circle-exclamation"></i> <span></span>
+                                        </div>
                                         <input type="hidden" name="pet_id" value="<?php echo $selected_pet_id; ?>">
                                         <input type="hidden" name="add_schedule" value="1">
 
@@ -506,7 +519,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['mark_fed'])) {
                                         </div>
 
                                         <div class="form-group">
-                                            <label>Repeat On</label>
+                                            <div
+                                                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+                                                <label style="margin-bottom:0;">Repeat On</label>
+                                                <button type="button" onclick="selectAllDays()"
+                                                    style="background:none; border:none; color:#3b82f6; font-size:0.75rem; cursor:pointer; font-weight:600;">Select
+                                                    All</button>
+                                            </div>
                                             <div class="week-days-selector">
                                                 <?php
                                                 $days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -616,6 +635,55 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['mark_fed'])) {
             </div>
         </main>
     </div>
+    <script>
+        function selectAllDays() {
+            const checkboxes = document.querySelectorAll('input[name="days[]"]');
+            const allCheckedPre = Array.from(checkboxes).every(cb => cb.checked);
+
+            // If all are checked, uncheck all. Otherwise, check all.
+            const newState = !allCheckedPre;
+            checkboxes.forEach(cb => cb.checked = newState);
+
+            // Update button text
+            const btn = document.querySelector('button[onclick="selectAllDays()"]');
+            if (btn) btn.textContent = newState ? "Deselect All" : "Select All";
+        }
+
+        function validateForm() {
+            const mealName = document.querySelector('input[name="meal_name"]').value.trim();
+            const time = document.querySelector('input[name="time"]').value;
+            const portion = parseFloat(document.querySelector('input[name="portion"]').value);
+            const foodDesc = document.querySelector('input[name="food_desc"]').value.trim();
+            const days = document.querySelectorAll('input[name="days[]"]:checked');
+            const errorDiv = document.getElementById('js-error-msg');
+            const errorSpan = errorDiv.querySelector('span');
+
+            let error = '';
+
+            if (mealName.length < 2) {
+                error = "Please enter a valid Meal Name (at least 2 chars).";
+            } else if (!time) {
+                error = "Please select a Feeding Time.";
+            } else if (isNaN(portion) || portion <= 0) {
+                error = "Please enter a valid Portion size greater than 0.";
+            } else if (foodDesc.length < 3) {
+                error = "Please describe the food (at least 3 chars).";
+            } else if (days.length === 0) {
+                error = "Please select at least one day to repeat.";
+            }
+
+            if (error) {
+                errorSpan.textContent = error;
+                errorDiv.style.display = 'flex';
+                // Scroll to error
+                errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return false;
+            }
+
+            errorDiv.style.display = 'none';
+            return true;
+        }
+    </script>
 </body>
 
 </html>

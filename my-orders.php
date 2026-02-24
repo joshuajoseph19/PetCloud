@@ -108,6 +108,9 @@ $orders = $stmt->fetchAll();
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
+                <button class="menu-toggle-btn" onclick="if(window.toggleUserSidebar) window.toggleUserSidebar();">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
                 <h1 style="font-family: 'Outfit';">My Purchase History</h1>
                 <div class="user-mini-profile">
                     <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user_name); ?>&background=random"

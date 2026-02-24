@@ -99,11 +99,14 @@ $topProducts = $stmtTopP->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shop Manager - PetCloud</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -112,45 +115,213 @@ $topProducts = $stmtTopP->fetchAll();
             --sidebar: #ffffff;
             --text-main: #1e293b;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); }
-        
-        .main-wrapper { margin-left: 280px; padding: 2.5rem; }
-        
-        .welcome-section { margin-bottom: 2.5rem; }
-        .welcome-section h2 { font-family: 'Outfit'; font-size: 2rem; margin-bottom: 0.5rem; }
-        .welcome-section p { color: #64748b; }
 
-        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 3rem; }
-        .stat-card {
-            background: #fff; padding: 1.75rem; border-radius: 1.25rem; border: 1px solid #e5e7eb;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); transition: 0.3s; cursor: pointer; text-decoration: none; color: inherit;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-color: var(--primary); }
-        .stat-icon { width: 48px; height: 48px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 1.25rem; }
-        .stat-value { font-size: 1.75rem; font-weight: 700; font-family: 'Outfit'; margin-bottom: 0.25rem; }
-        .stat-label { font-size: 0.875rem; color: #64748b; font-weight: 500; }
 
-        .dashboard-content { display: grid; grid-template-columns: 2fr 1.1fr; gap: 2rem; }
-        .content-card { background: #fff; border-radius: 1.5rem; border: 1px solid #e5e7eb; padding: 2rem; }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .card-title { font-family: 'Outfit'; font-size: 1.25rem; font-weight: 700; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+        }
+
+        .main-wrapper {
+            margin-left: 280px;
+            padding: 2.5rem;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .welcome-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .welcome-section h2 {
+            font-family: 'Outfit';
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-section p {
+            color: #64748b;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: #fff;
+            padding: 1.75rem;
+            border-radius: 1.25rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            transition: 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            font-family: 'Outfit';
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .dashboard-content {
+            display: grid;
+            grid-template-columns: 2fr 1.1fr;
+            gap: 2rem;
+        }
+
+        .content-card {
+            background: #fff;
+            border-radius: 1.5rem;
+            border: 1px solid #e5e7eb;
+            padding: 2rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-family: 'Outfit';
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
 
         /* Table Style */
-        .custom-table { width: 100%; border-collapse: collapse; }
-        .custom-table th { text-align: left; padding: 1rem; font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #f1f5f9; }
-        .custom-table td { padding: 1.25rem 1rem; font-size: 0.95rem; border-bottom: 1px solid #f1f5f9; }
-        
-        .status-pill { padding: 0.35rem 0.75rem; border-radius: 2rem; font-size: 0.75rem; font-weight: 600; }
-        .status-pending { background: #fff7ed; color: #c2410c; }
-        .status-shipped { background: #eff6ff; color: #1d4ed8; }
-        .status-delivered { background: #ecfdf5; color: #047857; }
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .custom-table th {
+            text-align: left;
+            padding: 1rem;
+            font-size: 0.8rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .custom-table td {
+            padding: 1.25rem 1rem;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .status-pill {
+            padding: 0.35rem 0.75rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .status-shipped {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .status-delivered {
+            background: #ecfdf5;
+            color: #047857;
+        }
 
         /* Top Product Card */
-        .product-item { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
-        .product-img { width: 56px; height: 56px; border-radius: 0.75rem; object-fit: cover; }
+        .product-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .product-img {
+            width: 56px;
+            height: 56px;
+            border-radius: 0.75rem;
+            object-fit: cover;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 1024px) {
+            .main-wrapper {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+
+            .dashboard-content {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content-card {
+                padding: 1.25rem;
+            }
+
+            .custom-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+        }
     </style>
 </head>
+
 <body>
 
     <?php include 'shop-sidebar.php'; ?>
@@ -165,22 +336,26 @@ $topProducts = $stmtTopP->fetchAll();
         <!-- Stats Overview -->
         <div class="stat-grid">
             <a href="shop-reports.php" class="stat-card">
-                <div class="stat-icon" style="background: #eef2ff; color: #4f46e5;"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                <div class="stat-icon" style="background: #eef2ff; color: #4f46e5;"><i
+                        class="fa-solid fa-indian-rupee-sign"></i></div>
                 <div class="stat-value">₹<?php echo number_format($totalRevenue, 2); ?></div>
                 <div class="stat-label">Total Revenue</div>
             </a>
             <a href="shop-orders.php?filter=today" class="stat-card">
-                <div class="stat-icon" style="background: #ecfdf5; color: #10b981;"><i class="fa-solid fa-bag-shopping"></i></div>
+                <div class="stat-icon" style="background: #ecfdf5; color: #10b981;"><i
+                        class="fa-solid fa-bag-shopping"></i></div>
                 <div class="stat-value"><?php echo $todayOrders; ?></div>
                 <div class="stat-label">Today's Orders</div>
             </a>
             <a href="shop-products.php" class="stat-card">
-                <div class="stat-icon" style="background: #fefce8; color: #eab308;"><i class="fa-solid fa-boxes-stacked"></i></div>
+                <div class="stat-icon" style="background: #fefce8; color: #eab308;"><i
+                        class="fa-solid fa-boxes-stacked"></i></div>
                 <div class="stat-value"><?php echo $totalProducts; ?></div>
                 <div class="stat-label">Total Products</div>
             </a>
             <a href="shop-orders.php?status=Pending" class="stat-card">
-                <div class="stat-icon" style="background: #fef2f2; color: #ef4444;"><i class="fa-solid fa-truck-ramp-box"></i></div>
+                <div class="stat-icon" style="background: #fef2f2; color: #ef4444;"><i
+                        class="fa-solid fa-truck-ramp-box"></i></div>
                 <div class="stat-value"><?php echo $pendingShipments; ?></div>
                 <div class="stat-label">Pending Shipments</div>
             </a>
@@ -191,7 +366,9 @@ $topProducts = $stmtTopP->fetchAll();
             <div class="content-card">
                 <div class="card-header">
                     <div class="card-title">Recent Orders</div>
-                    <a href="shop-orders.php" style="color: var(--primary); text-decoration: none; font-size: 0.9rem; font-weight: 600;">View All</a>
+                    <a href="shop-orders.php"
+                        style="color: var(--primary); text-decoration: none; font-size: 0.9rem; font-weight: 600;">View
+                        All</a>
                 </div>
                 <table class="custom-table">
                     <thead>
@@ -205,20 +382,23 @@ $topProducts = $stmtTopP->fetchAll();
                     </thead>
                     <tbody>
                         <?php if (empty($recentOrders)): ?>
-                            <tr><td colspan="5" style="text-align:center; color:#94a3b8; padding: 3rem;">No orders yet.</td></tr>
+                            <tr>
+                                <td colspan="5" style="text-align:center; color:#94a3b8; padding: 3rem;">No orders yet.</td>
+                            </tr>
                         <?php else: ?>
                             <?php foreach ($recentOrders as $order): ?>
-                            <tr>
-                                <td style="font-weight:700;">#<?php echo $order['id']; ?></td>
-                                <td><?php echo htmlspecialchars($order['customer_name']); ?></td>
-                                <td style="font-weight:600;">₹<?php echo number_format($order['order_total'], 2); ?></td>
-                                <td>
-                                    <span class="status-pill status-<?php echo strtolower($order['status']); ?>">
-                                        <?php echo $order['status']; ?>
-                                    </span>
-                                </td>
-                                <td><a href="shop-orders.php?id=<?php echo $order['id']; ?>" class="icon-btn" style="color: #64748b;"><i class="fa-solid fa-eye"></i></a></td>
-                            </tr>
+                                <tr>
+                                    <td style="font-weight:700;">#<?php echo $order['id']; ?></td>
+                                    <td><?php echo htmlspecialchars($order['customer_name']); ?></td>
+                                    <td style="font-weight:600;">₹<?php echo number_format($order['order_total'], 2); ?></td>
+                                    <td>
+                                        <span class="status-pill status-<?php echo strtolower($order['status']); ?>">
+                                            <?php echo $order['status']; ?>
+                                        </span>
+                                    </td>
+                                    <td><a href="shop-orders.php?id=<?php echo $order['id']; ?>" class="icon-btn"
+                                            style="color: #64748b;"><i class="fa-solid fa-eye"></i></a></td>
+                                </tr>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </tbody>
@@ -236,21 +416,24 @@ $topProducts = $stmtTopP->fetchAll();
                         <p style="text-align:center; color:#94a3b8; padding: 2rem;">Sell items to see tops!</p>
                     <?php else: ?>
                         <?php foreach ($topProducts as $tp): ?>
-                        <div class="product-item">
-                            <img src="<?php echo $tp['image_url']; ?>" class="product-img">
-                            <div style="flex:1;">
-                                <div style="font-weight:600; font-size:0.95rem;"><?php echo htmlspecialchars($tp['name']); ?></div>
-                                <div style="font-size:0.8rem; color:#64748b;"><?php echo $tp['sales_count']; ?> conversions</div>
+                            <div class="product-item">
+                                <img src="<?php echo $tp['image_url']; ?>" class="product-img">
+                                <div style="flex:1;">
+                                    <div style="font-weight:600; font-size:0.95rem;">
+                                        <?php echo htmlspecialchars($tp['name']); ?></div>
+                                    <div style="font-size:0.8rem; color:#64748b;"><?php echo $tp['sales_count']; ?> conversions
+                                    </div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div style="font-weight:700; color: #10b981;"><?php echo $tp['total_qty']; ?></div>
+                                    <div style="font-size:0.75rem; color:#94a3b8;">Sold</div>
+                                </div>
                             </div>
-                            <div style="text-align:right;">
-                                <div style="font-weight:700; color: #10b981;"><?php echo $tp['total_qty']; ?></div>
-                                <div style="font-size:0.75rem; color:#94a3b8;">Sold</div>
-                            </div>
-                        </div>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
-                <a href="shop-products.php" class="stat-card" style="display:block; text-align:center; padding: 1rem; margin-top: 1rem; color: var(--primary); font-weight: 600; font-size:0.9rem;">
+                <a href="shop-products.php" class="stat-card"
+                    style="display:block; text-align:center; padding: 1rem; margin-top: 1rem; color: var(--primary); font-weight: 600; font-size:0.9rem;">
                     Manage Inventory
                 </a>
             </div>
@@ -264,7 +447,7 @@ $topProducts = $stmtTopP->fetchAll();
                 if (e.key === 'Enter') {
                     const query = this.value.toLowerCase().trim();
                     if (!query) return;
-                    
+
                     if (query.includes('order')) {
                         window.location.href = 'shop-orders.php';
                     } else if (query.includes('product') || query.includes('item')) {
@@ -276,10 +459,10 @@ $topProducts = $stmtTopP->fetchAll();
             });
 
             // Live filtering for the recent orders table
-            shopSearch.addEventListener('input', function() {
+            shopSearch.addEventListener('input', function () {
                 const query = this.value.toLowerCase();
                 const rows = document.querySelectorAll('.custom-table tbody tr');
-                
+
                 rows.forEach(row => {
                     if (row.cells.length < 2) return; // Skip "No orders yet" message
                     const text = row.innerText.toLowerCase();
@@ -289,4 +472,5 @@ $topProducts = $stmtTopP->fetchAll();
         }
     </script>
 </body>
+
 </html>

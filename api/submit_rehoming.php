@@ -7,16 +7,23 @@
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
+// Disable display errors to prevent HTML appending to JSON output
+ini_set('display_errors', 0);
 require_once '../db_connect.php';
 session_start();
 
 try {
-    // Check if user is logged in
-    if (!isset($_SESSION['user_id'])) {
-        throw new Exception("User must be logged in to submit a rehoming listing");
+    // Check for PDO
+    if (!isset($pdo)) {
+        throw new Exception("Database connection not available.");
     }
 
-    $userId = $_SESSION['user_id'];
+    // Check if user is logged in
+    $userId = $_SESSION['user_id'] ?? null;
+    if (!$userId) {
+        // Maybe allow testing without login if needed? Assuming strict for now
+        throw new Exception("User must be logged in to submit a rehoming listing");
+    }
 
     // Validate required fields
     $requiredFields = ['pet_type_id', 'pet_name', 'gender', 'reason_for_rehoming', 'location', 'city', 'state'];
@@ -70,7 +77,7 @@ try {
         }
     }
 
-    // Handle image upload (simplified - you may want to enhance this)
+    // Handle image upload
     $primaryImage = null;
     if (isset($_FILES['primary_image']) && $_FILES['primary_image']['error'] === UPLOAD_ERR_OK) {
         $uploadDir = '../uploads/rehoming/';
@@ -83,6 +90,7 @@ try {
         $uploadPath = $uploadDir . $fileName;
 
         if (move_uploaded_file($_FILES['primary_image']['tmp_name'], $uploadPath)) {
+            // Store relative path in DB
             $primaryImage = 'uploads/rehoming/' . $fileName;
         }
     }
@@ -95,13 +103,9 @@ try {
                contact_phone, contact_email, primary_image, status)
               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending')";
 
-    $stmt = $conn->prepare($query);
-    if (!$stmt) {
-        throw new Exception("Failed to prepare statement: " . $conn->error);
-    }
+    $stmt = $pdo->prepare($query);
 
-    $stmt->bind_param(
-        "iiisiissdississssdssssssss",
+    $params = [
         $userId,
         $petTypeId,
         $breedId,
@@ -126,13 +130,10 @@ try {
         $contactPhone,
         $contactEmail,
         $primaryImage
-    );
+    ];
 
-    if (!$stmt->execute()) {
-        throw new Exception("Failed to insert listing: " . $stmt->error);
-    }
-
-    $listingId = $stmt->insert_id;
+    $stmt->execute($params);
+    $listingId = $pdo->lastInsertId();
 
     echo json_encode([
         'success' => true,
@@ -141,15 +142,13 @@ try {
         'status' => 'Pending approval'
     ]);
 
-    $stmt->close();
-
 } catch (Exception $e) {
-    http_response_code(400);
+    http_response_code(400); // Bad Request
     echo json_encode([
         'success' => false,
         'error' => $e->getMessage()
     ]);
 }
 
-$conn->close();
+$pdo = null;
 ?>

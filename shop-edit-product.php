@@ -95,6 +95,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .main-wrapper {
             margin-left: 280px;
             padding: 2.5rem;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @media (max-width: 1024px) {
+            .main-wrapper {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .page-header {

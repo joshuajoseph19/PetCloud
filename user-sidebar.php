@@ -38,10 +38,13 @@ appointment_date >= CURDATE()");
 // Get current page for active state
 $currentPage = basename($_SERVER['PHP_SELF']);
 ?>
-<aside class="sidebar">
+<aside class="sidebar" id="userSidebar">
     <div class="sidebar-brand"
-        style="padding: 0.5rem 1.5rem 0; display: flex; align-items: flex-start; margin-bottom: 0;">
+        style="padding: 0.5rem 1.5rem 0; display: flex; align-items: center; margin-bottom: 0; position: relative;">
         <img src="images/logo.png" alt="PetCloud Logo" style="width: 180px; height: auto; object-fit: contain;">
+        <button class="close-sidebar-btn" id="closeUserSidebarBtn">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -109,3 +112,27 @@ $currentPage = basename($_SERVER['PHP_SELF']);
         <?php endif; ?>
     </div>
 </aside>
+
+<!-- Overlay for mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const sidebar = document.getElementById('userSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const closeBtn = document.getElementById('closeUserSidebarBtn');
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+        }
+
+        if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+        if (overlay) overlay.addEventListener('click', closeSidebar);
+
+        window.toggleUserSidebar = function () {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        };
+    });
+</script>

@@ -119,6 +119,9 @@ $user_name = $_SESSION['user_name'] ?? 'Pet Lover';
         <!-- Main Content -->
         <main class="main-content">
             <header class="top-header">
+                <button class="menu-toggle-btn" onclick="if(window.toggleUserSidebar) window.toggleUserSidebar();">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
                 <div class="search-bar">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <input type="text" id="pet-search" placeholder="Search for pets to adopt...">

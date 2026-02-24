@@ -16,11 +16,14 @@ try {
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
-    // Log error
+    // If this is an API request (implied by JSON header usually, but here we can just ensure valid JSON if it fails)
+    // We strive to return JSON error if possible, but db_connect is included by pages too.
+    // For safety in hybrid environment:
     error_log("Database connection failed: " . $e->getMessage());
-
-    // Show user-friendly error
-    die("Database connection error. Please check if MySQL is running and database 'petcloud_db' exists.");
+    // Don't output HTML. Just die with a message that is valid text.
+    // Ideally, the API wrapper handles the JSON encoding.
+    // Throwing ensures the API try-catch block catches it if inside one.
+    throw $e;
 }
 
 // Helper function for admin logging
@@ -30,7 +33,7 @@ function logAdminActivity($pdo, $adminName, $action, $targetType = null, $target
         $stmt = $pdo->prepare("INSERT INTO admin_activity_logs (admin_name, action, target_type, target_id) VALUES (?, ?, ?, ?)");
         $stmt->execute([$adminName, $action, $targetType, $targetId]);
     } catch (PDOException $e) {
+        // Silently fail logging, don't break app
         error_log("Failed to log admin activity: " . $e->getMessage());
     }
 }
-?>
