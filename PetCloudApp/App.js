@@ -4,7 +4,7 @@ import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Alert,
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { API_URL, getImageUrl, fetchWithTimeout } from './config';
+import { API_URL, API_BASE_URL, getImageUrl, fetchWithTimeout } from './config';
 
 export default function App() {
     const [screen, setScreen] = useState('login');
@@ -364,7 +364,7 @@ export default function App() {
         if (!user) return;
         setFeederLoading(true);
         try {
-            const response = await fetchWithTimeout(`${API_URL}/mobile_api/get_feeder_data.php?user_id=${user.id}`);
+            const response = await fetchWithTimeout(`${API_URL}/get_feeder_data.php?user_id=${user.id}`);
             const data = await response.json();
             if (data.ok) {
                 setFeederData(data);
@@ -397,7 +397,7 @@ export default function App() {
             params.append('pet_id', selectedFeederPetId);
             params.append('quantity', qty);
 
-            const response = await fetchWithTimeout(`${API_URL}/mobile_api/trigger_manual_feed.php`, {
+            const response = await fetchWithTimeout(`${API_URL}/trigger_manual_feed.php`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: params.toString()
@@ -530,7 +530,7 @@ export default function App() {
             params.append('feeding_time', scheduleTime);
             params.append('quantity', schedulePortion);
 
-            const response = await fetchWithTimeout(`${API_URL}/mobile_api/save_feeder_schedule.php`, {
+            const response = await fetchWithTimeout(`${API_URL}/save_feeder_schedule.php`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: params.toString()
@@ -1796,10 +1796,18 @@ export default function App() {
                             <View style={{ gap: 15, paddingBottom: 100 }}>
                                 {myOrders.map((order) => (
                                     <View key={order.id} style={styles.orderCard}>
-                                        <View style={styles.orderHeader}>
-                                            <View>
-                                                <Text style={styles.orderIdText}>Order #{order.id}</Text>
-                                                <Text style={styles.orderDateText}>{order.order_date ? new Date(order.order_date.replace(' ', 'T')).toLocaleDateString() : 'N/A'}</Text>
+                                        <View style={[styles.orderHeader, { alignItems: 'center' }]}>
+                                            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                                                {order.product_image && (
+                                                    <Image 
+                                                        source={{ uri: getImageUrl(order.product_image) }} 
+                                                        style={{ width: 40, height: 40, borderRadius: 6, marginRight: 12, backgroundColor: '#f1f5f9' }} 
+                                                    />
+                                                )}
+                                                <View>
+                                                    <Text style={styles.orderIdText}>Order #{order.id}</Text>
+                                                    <Text style={styles.orderDateText}>{order.order_date ? new Date(order.order_date.replace(' ', 'T')).toLocaleDateString() : 'N/A'}</Text>
+                                                </View>
                                             </View>
                                             <View style={[styles.statusBadgeSmall,
                                             order.status === 'Delivered' ? styles.statusActive :

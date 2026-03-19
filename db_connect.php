@@ -1,19 +1,20 @@
 <?php
-// Database configuration
+// Database configuration (Local XAMPP)
 $host = 'localhost';
+$port = '3306';
 $dbname = 'petcloud_db';
 $username = 'root';
 $password = '';
 
 try {
-    // Create PDO connection
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
-
+    // Create PDO connection with Port and SSL
+    $pdo = new PDO("mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4", $username, $password);
+    
     // Set error mode to exception
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Set default fetch mode
-    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    // Disable sql_require_primary_key if needed (Aiven specific, but harmless locally)
+    // $pdo->exec("SET SESSION sql_require_primary_key = 0");
 
     // Set correct timezone
     date_default_timezone_set('Asia/Kolkata');

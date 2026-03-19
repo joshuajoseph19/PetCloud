@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 
 // UPDATE THIS IP with your laptop's current IPv4 address from 'ipconfig'
-const DEV_IP = '10.228.205.219';
+const DEV_IP = '192.168.1.8';
 
 export const API_BASE_URL = Platform.select({
     web: 'http://localhost/PetCloud',

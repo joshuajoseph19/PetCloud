@@ -11,8 +11,10 @@ if (isset($_GET['signup']) && $_GET['signup'] == 'success') {
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = $_POST['email'] ?? '';
-    $pass = $_POST['password'] ?? '';
+    $email = trim($_POST['email'] ?? '');
+    $pass = trim($_POST['password'] ?? '');
+
+    file_put_contents('login_debug.log', date('[Y-m-d H:i:s] ') . "Login attempt for: " . $email . " (Pass length: " . strlen($pass) . ")\n", FILE_APPEND);
 
     try {
         // Check user

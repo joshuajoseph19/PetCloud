@@ -19,7 +19,7 @@ $shop_id = $shop['id'];
 $shopName = $shop['shop_name'];
 
 // Fetch Unique Customers who purchased from this shop
-$stmt = $pdo->prepare("SELECT u.id, u.full_name, u.email, u.phone, 
+$stmt = $pdo->prepare("SELECT u.id, u.full_name, u.email, MAX(o.phone) as phone, 
                              COUNT(DISTINCT o.id) as total_orders, 
                              MAX(o.created_at) as last_order_date
                       FROM users u

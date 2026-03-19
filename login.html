@@ -53,12 +53,12 @@
                 <p style="color: var(--text-muted);">Please enter your details to access your dashboard.</p>
             </div>
 
-            <form action="dashboard.html">
+            <form action="index.php" method="POST">
                 <div class="input-group">
                     <label class="input-label">Email Address</label>
                     <div class="input-wrapper">
                         <i class="fa-regular fa-envelope input-icon"></i>
-                        <input type="email" class="input-field" placeholder="name@example.com" required>
+                        <input type="email" name="email" class="input-field" placeholder="name@example.com" required>
                     </div>
                 </div>
 
@@ -69,7 +69,8 @@
                     </div>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-lock input-icon"></i>
-                        <input type="password" class="input-field" placeholder="Enter your password" required>
+                        <input type="password" name="password" class="input-field" placeholder="Enter your password"
+                            required>
                         <i class="fa-regular fa-eye-slash"
                             style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); cursor: pointer;"></i>
                     </div>

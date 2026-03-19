@@ -125,7 +125,14 @@ try {
     $lostPetReports = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // 11. My Orders (Recent)
-    $stmt = $pdo->prepare("SELECT * FROM orders WHERE user_id = ? ORDER BY order_date DESC LIMIT 10");
+    $stmt = $pdo->prepare("
+        SELECT o.id, o.user_id, o.payment_id, o.total_amount, o.shipping_address, o.city, o.zip_code, o.status, o.created_at AS order_date, o.payment_method,
+               (SELECT p.image_url FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = o.id LIMIT 1) as product_image
+        FROM orders o
+        WHERE o.user_id = ? 
+        ORDER BY o.created_at DESC 
+        LIMIT 10
+    ");
     $stmt->execute([$user_id]);
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

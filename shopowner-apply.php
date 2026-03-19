@@ -5,18 +5,17 @@ $success = false;
 $error = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = $_POST['full_name'];
-    $email = $_POST['email'];
-    $phone = $_POST['phone'];
-    $pass = $_POST['password'];
-    $shop_name = $_POST['shop_name'];
-    $business_reg = $_POST['business_reg'] ?? '';
-    $address = $_POST['address'];
-    $category = $_POST['shop_category'];
-    $years = $_POST['years_in_business'];
-    $desc = $_POST['description'];
+    $name = trim($_POST['full_name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
+    $pass = trim($_POST['password'] ?? '');
+    $shop_name = trim($_POST['shop_name'] ?? '');
+    $business_reg = trim($_POST['business_reg'] ?? '');
+    $address = trim($_POST['address'] ?? '');
+    $category = trim($_POST['shop_category'] ?? '');
+    $years = trim($_POST['years_in_business'] ?? '');
+    $desc = trim($_POST['description'] ?? '');
 
-    $desc = $_POST['description'];
 
     // --- Server-Side Validation ---
     if (empty($name) || empty($email) || empty($phone) || empty($pass) || empty($shop_name) || empty($address) || empty($category) || empty($years)) {

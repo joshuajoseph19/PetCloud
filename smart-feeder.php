@@ -45,8 +45,8 @@ if (isset($_POST['action']) && $_POST['action'] === 'save_schedule') {
     $time = $_POST['feeding_time'];
     $qty = $_POST['quantity'];
 
-    // Simplified: Weekly/Daily default to Daily for minimal version
-    $stmt = $pdo->prepare("INSERT INTO smart_feeder_schedules (user_id, pet_id, feeding_time, quantity_grams, mode, frequency) VALUES (?, ?, ?, ?, 'Manual', 'Daily')");
+    // Simplified version matching the existing database schema
+    $stmt = $pdo->prepare("INSERT INTO smart_feeder_schedules (user_id, pet_id, feeding_time, quantity_grams, mode) VALUES (?, ?, ?, ?, 'Automatic')");
     $stmt->execute([$user_id, $pet_id, $time, $qty]);
 
     header("Location: smart-feeder.php?msg=schedule_saved");

@@ -672,7 +672,46 @@ if (!$currentReminder) {
                                                 </div>
                                         <?php endforeach; ?>
                                     </div>
-<?php endif; ?>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- NEW: Adoptable Pets Section -->
+                        <div class="card adoption-list-card" 
+                            style="background: white; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-top: 2rem; border-left: 4px solid #3b82f6;">
+                            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                <div class="icon-title" style="display: flex; align-items: center; gap: 1rem;">
+                                    <div class="icon-blue" style="width: 40px; height: 40px; background: #dbeafe; color: #3b82f6; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fa-solid fa-heart"></i>
+                                    </div>
+                                    <h4 style="font-size: 1rem;">Adoptable Pets Near You</h4>
+                                </div>
+                                <a href="adoption.php" style="font-size: 0.75rem; color: #3b82f6; text-decoration: none;">Browse All</a>
+                            </div>
+
+                            <?php
+                            // Fetch general active listings (not just mine)
+                            $allAdoptionsStmt = $pdo->prepare("SELECT * FROM adoption_listings WHERE status = 'active' AND user_id != ? ORDER BY created_at DESC LIMIT 3");
+                            $allAdoptionsStmt->execute([$user_id]);
+                            $othersAdoptions = $allAdoptionsStmt->fetchAll();
+
+                            if (empty($othersAdoptions)): ?>
+                                <div style="text-align: center; padding: 1rem; color: #9ca3af;">
+                                    <p style="font-size: 0.85rem;">No new pets available for adoption right now.</p>
+                                </div>
+                            <?php else: ?>
+                                <div class="adoption-nearby-list">
+                                    <?php foreach ($othersAdoptions as $pet): ?>
+                                        <div class="adoption-item" style="display:flex; align-items:center; gap:1rem; padding: 0.75rem; border: 1px solid #f3f4f6; border-radius: 0.75rem; margin-bottom: 0.75rem; background: #f8fafc;">
+                                            <img src="<?php echo htmlspecialchars($pet['image_url']); ?>" style="width: 50px; height: 50px; border-radius: 0.5rem; object-fit: cover;">
+                                            <div style="flex:1;">
+                                                <h5 style="margin:0; font-size:0.9rem; color:#1e293b;"><?php echo htmlspecialchars($pet['pet_name']); ?></h5>
+                                                <span style="font-size:0.75rem; color:#64748b; font-weight: 500;"><?php echo ucfirst($pet['pet_type']); ?> • <?php echo htmlspecialchars($pet['breed']); ?></span>
+                                            </div>
+                                            <a href="adoption.php" style="background:#3b82f6; color:white; padding: 0.4rem 0.6rem; border-radius: 0.4rem; font-size: 0.7rem; font-weight: 700; text-decoration: none;">Adopt</a>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
 

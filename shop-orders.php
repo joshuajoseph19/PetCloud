@@ -31,7 +31,7 @@ if (isset($_POST['update_status'])) {
 }
 
 // Fetch Orders containing this shop's products
-$stmt = $pdo->prepare("SELECT o.*, u.full_name, u.email as user_email, u.phone, 
+$stmt = $pdo->prepare("SELECT o.*, u.full_name, u.email as user_email, o.phone, 
                              SUM(oi.price_at_purchase * oi.quantity) as total_value,
                              GROUP_CONCAT(p.name SEPARATOR ', ') as product_summary
                       FROM orders o

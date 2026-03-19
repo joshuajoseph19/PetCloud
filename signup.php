@@ -5,10 +5,10 @@ $error = '';
 $success = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = $_POST['full_name'] ?? '';
-    $email = $_POST['email'] ?? '';
-    $pass = $_POST['password'] ?? '';
-    $confirm = $_POST['confirm_password'] ?? '';
+    $name = trim($_POST['full_name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $pass = trim($_POST['password'] ?? '');
+    $confirm = trim($_POST['confirm_password'] ?? '');
 
     if ($pass !== $confirm) {
         $error = "Passwords do not match!";
@@ -154,7 +154,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                 </div>
 
-                <div <div
+                <div
                     style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--text-muted);">
                     <input type="checkbox" id="terms" required>
                     <label for="terms">I agree to the <a href="#" style="color: #3b82f6;">Terms of Service</a> and <a
